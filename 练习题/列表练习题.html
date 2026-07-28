@@ -1,33 +1,231 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8">
-<title>列表练习题.docx</title>
+<title>列表练习题</title>
 <style>
 body{font-family:-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:20px;line-height:1.8;background:#f0f4f0;color:#1f2328;}
 h1{color:#1a7f37;border-bottom:2px solid #1a7f37;padding-bottom:8px;}
-pre{background:#fff;border:1px solid #d0d7de;border-radius:6px;padding:12px 16px;overflow-x:auto;font-size:14px;line-height:1.6;}
+h2{color:#1a7f37;margin-top:25px;font-size:17px;}
+pre{background:#fff;border:1px solid #d0d7de;border-radius:6px;padding:12px 16px;overflow-x:auto;font-size:13px;line-height:1.6;}
 code{background:#edf4ed;padding:2px 5px;border-radius:3px;color:#1a7f37;}
-</style></head><body>
+.answer{background:#f6faf6;border:1px solid #b4e0b4;border-radius:8px;padding:12px 16px;margin:10px 0;}
+.answer summary{cursor:pointer;color:#1a7f37;font-weight:600;}
+p{margin:8px 0;}
+</style></head>
+<body>
 <h1>列表练习题</h1>
-<p>列表练习题</p>
-<p>1. 使用 range() 创建一个包含 10, 20, 30, ..., 100 的列表</p>
-<p>2. 从列表 [12, 45, 7, 89, 23, 56, 3] 中，使用切片分别获取前 3 个元素和最后 2 个元素</p>
-<p>3. 将两个列表 [&#x27;red&#x27;, &#x27;green&#x27;, &#x27;blue&#x27;] 和 [255, 128, 64] 合并为字典 {&#x27;red&#x27;: 255, &#x27;green&#x27;: 128, &#x27;blue&#x27;: 64}（使用 zip）</p>
-<p>4. 不使用 reverse() 方法或切片 [::-1]，通过索引交换的方式原地反转列表 [5, 10, 15, 20, 25]</p>
-<p>5. 删除列表 [3, 8, 5, 12, 7, 10, 15] 中所有大于 10 的元素（分别写出原地修改和新建列表两种实现）</p>
-<p>6. 将三维列表 [[[1, 2], [3, 4]], [[5, 6], [7, 8]]] 扁平化为 [1, 2, 3, 4, 5, 6, 7, 8]（使用嵌套列表推导式）</p>
-<p>7. 找出列表 [4, 5, 6, 4, 7, 5, 8, 6] 中仅出现一次的元素，并保持它们在原列表中的相对顺序</p>
-<p>8. 计算列表 [1, 2, 3, 4, 5] 的累积和得到列表 [1, 3, 6, 10, 15]（不使用 numpy，用循环或推导式）</p>
-<p>9. 将字符串 &quot;Python 3.12&quot; 按空格分割为列表，再将列表元素用 &quot;-&quot; 连接成新字符串 &quot;Python-3.12&quot;</p>
-<p>10. 从列表 [&#x27;apple&#x27;, &#x27;banana&#x27;, &#x27;cherry&#x27;, &#x27;date&#x27;, &#x27;elderberry&#x27;, &#x27;fig&#x27;] 中随机不重复抽取 3 个元素</p>
-<p>11. 将列表 [1, 2, 3, 4, 5] 循环右移 2 位，得到 [4, 5, 1, 2, 3]（使用切片操作）</p>
-<p>12. 找出列表 [10, 20, 30, 20, 40, 10, 50, 20] 中出现次数最多的元素及其出现次数</p>
-<p>13. 将两个不等长列表 [&#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;] 和 [1, 2] 合并，短列表用 None 补齐，结果为 [(&#x27;a&#x27;, 1), (&#x27;b&#x27;, 2), (&#x27;c&#x27;, None)]（使用 itertools.zip_longest）</p>
-<p>14. 复制列表 [1, [2, 3], 4]，分别使用浅拷贝和深拷贝各复制一份。修改副本中内层列表的第一个元素为 99，打印原列表和两个副本，观察差异并解释原因</p>
-<p>15. 按字符串首字母对列表 [&#x27;banana&#x27;, &#x27;apple&#x27;, &#x27;cherry&#x27;, &#x27;apricot&#x27;, &#x27;blueberry&#x27;] 进行分组，输出字典 {&#x27;a&#x27;: [&#x27;apple&#x27;, &#x27;apricot&#x27;], &#x27;b&#x27;: [&#x27;banana&#x27;, &#x27;blueberry&#x27;], &#x27;c&#x27;: [&#x27;cherry&#x27;]}（使用循环或 defaultdict）</p>
-<p>16. 计算嵌套列表 [[1, 2, 3], [4, 5], [1, 2, 3], [6]] 中每个子列表的长度，并统计不同长度的子列表各有多少个（如长度 3 出现 2 次）</p>
-<p>17. 将列表 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] 中索引 3 到 6 的元素（含 3 和 6）替换为 [30, 40, 50]，得到 [0, 1, 2, 30, 40, 50, 7, 8, 9]（使用切片赋值）</p>
-<p>18. 将列表 [1, 2, 3, 4, 5, 6] 拆分为两个列表：一个包含所有偶数索引（0, 2, 4...）的元素，一个包含所有奇数索引（1, 3, 5...）的元素（使用切片）</p>
-<p>19. 给定有序列表 [1, 2, 3, 4, 5] 和 [4, 5, 6, 7, 8]，在不使用集合 (set) 的情况下，找出它们的交集（共同元素）和仅在第一个列表中出现的元素（差集）</p>
-<p>20. 生成一个包含 1 到 100 中所有质数的列表（使用列表推导式，需先定义一个判断质数的辅助函数）</p>
+
+<h2>一、range 与列表创建</h2>
+
+<p><strong>1.</strong> 使用 range 生成列表 [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]</p>
+<details class="answer"><summary>查看答案</summary><pre>a = list(range(10, 101, 10))
+print(a)  # [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]</pre></details>
+
+<h2>二、切片操作</h2>
+
+<p><strong>2.</strong> 取列表前 3 个和后 2 个元素拼接</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [12, 45, 7, 89, 23, 56, 3]
+b = a[:3]      # [12, 45, 7]
+c = a[-2:]     # [56, 3]
+d = b + c
+print(d)       # [12, 45, 7, 56, 3]</pre></details>
+
+<p><strong>3.</strong> 切片赋值：将 [3:7] 替换为 [30,40,50]</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+a[3:7] = [30, 40, 50]
+print(a)  # [0, 1, 2, 30, 40, 50, 7, 8, 9]</pre></details>
+
+<p><strong>4.</strong> 步长切片：取偶数位和奇数位</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [1, 2, 3, 4, 5, 6]
+b = a[0:6:2]   # [1, 3, 5]（偶数索引）
+c = a[1:6:2]   # [2, 4, 6]（奇数索引）
+print(b)
+print(c)</pre></details>
+
+<p><strong>5.</strong> 列表反转（手动实现，不用 reverse 和 [::-1]）</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [5, 10, 15, 20, 25]
+n = len(a)
+for i in range(n // 2):
+    temp = a[i]
+    a[i] = a[n - 1 - i]
+    a[n - 1 - i] = temp
+print(a)  # [25, 20, 15, 10, 5]</pre></details>
+
+<p><strong>6.</strong> 重组列表：后两个 + 中间 + 前两个</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [1, 2, 3, 4, 5]
+b = a[:2]       # [1, 2]
+c = a[-2:]      # [4, 5]
+d = c + [a[2]] + b   # [4, 5] + [3] + [1, 2]
+print(d)        # [4, 5, 3, 1, 2]</pre></details>
+
+<h2>三、遍历时删除元素（陷阱）</h2>
+
+<p><strong>7.</strong> 遍历时用 <code>pop()</code> 删除大于 10 的元素（错误示范）</p>
+<details class="answer"><summary>查看答案</summary><pre># ❌ 错误：遍历时修改列表长度，索引错位
+a = [3, 8, 5, 12, 7, 10, 15]
+for num in range(len(a)):
+    if a[num] > 10:
+        a.pop(num)
+print(a)  # 结果错误</pre></details>
+
+<p><strong>8.</strong> 遍历时用 <code>remove()</code> 删除（仍有问题）</p>
+<details class="answer"><summary>查看答案</summary><pre># ⚠️ remove 每次删第一个匹配项，遍历中删除会漏掉
+a = [3, 8, 5, 12, 7, 10, 15]
+for num in a:
+    if num > 10:
+        a.remove(num)
+print(a)  # 结果可能不准确</pre></details>
+
+<p><strong>9.</strong> ✅ 正确方法 1：列表推导式</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [3, 8, 5, 12, 7, 10, 15]
+a = [i for i in a if i <= 10]
+print(a)  # [3, 8, 5, 7, 10]</pre></details>
+
+<p><strong>10.</strong> ✅ 正确方法 2：倒序遍历删除</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [3, 8, 5, 12, 7, 10, 15]
+for num in range(len(a) - 1, -1, -1):
+    if a[num] > 10:
+        a.pop(num)
+print(a)  # [3, 8, 5, 7, 10]</pre></details>
+
+<h2>四、嵌套列表</h2>
+
+<p><strong>11.</strong> 将三维嵌套列表展平为一维</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+num = []
+for i in a:
+    for k in i:
+        for x in k:
+            num.append(x)
+print(num)  # [1, 2, 3, 4, 5, 6, 7, 8]</pre></details>
+
+<p><strong>12.</strong> 统计子列表的长度</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [[1, 2, 3], [4, 5], [1, 2, 3], [6]]
+b = [len(i) for i in a]         # [3, 2, 3, 1]
+c = {}
+for x in b:
+    c[x] = c.get(x, 0) + 1
+print(c)  # {3: 2, 2: 1, 1: 1}</pre></details>
+
+<h2>五、列表转字典 / zip 操作</h2>
+
+<p><strong>13.</strong> 两个列表合并为字典</p>
+<details class="answer"><summary>查看答案</summary><pre>a = ['red', 'green', 'blue']
+b = [255, 128, 64]
+c = dict(zip(a, b))
+print(c)  # {'red': 255, 'green': 128, 'blue': 64}</pre></details>
+
+<p><strong>14.</strong> 字符串 split + join</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "Python 3.12"
+b = a.split(' ')
+c = '-'.join(b)
+print(c)  # "Python-3.12"</pre></details>
+
+<h2>六、统计与计数</h2>
+
+<p><strong>15.</strong> 统计列表元素出现次数</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [4, 5, 6, 4, 7, 5, 8, 6]
+count = {}
+for num in a:
+    count[num] = count.get(num, 0) + 1
+print(count)  # {4: 2, 5: 2, 6: 2, 7: 1, 8: 1}</pre></details>
+
+<p><strong>16.</strong> 找出只出现一次的元素</p>
+<details class="answer"><summary>查看答案</summary><pre>count = {4: 2, 5: 2, 6: 2, 7: 1, 8: 1}
+new_list = [k for k, v in count.items() if v == 1]
+print(new_list)  # [7, 8]</pre></details>
+
+<p><strong>17.</strong> 找出出现次数最多的元素</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [10, 20, 30, 20, 40, 10, 50, 20]
+b = {}
+for i in a:
+    b[i] = b.get(i, 0) + 1
+max_key = max(b, key=b.get)
+print(max_key, b[max_key])  # 20 3</pre></details>
+
+<p><strong>18.</strong> zip_longest 不等长配对</p>
+<details class="answer"><summary>查看答案</summary><pre>from itertools import zip_longest
+a = ['a', 'b', 'c']
+b = ['1', '2']
+c = list(zip_longest(a, b))
+print(c)  # [('a', '1'), ('b', '2'), ('c', None)]</pre></details>
+
+<h2>七、累加与推导式</h2>
+
+<p><strong>19.</strong> 计算累加和（前缀和）</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [1, 2, 3, 4, 5]
+s = 0
+new_list = []
+for i in a:
+    s += i
+    new_list.append(s)
+print(new_list)  # [1, 3, 6, 10, 15]
+
+# 或用海象运算符
+s = 0
+result = [s := s + i for i in a]
+print(result)  # [1, 3, 6, 10, 15]</pre></details>
+
+<p><strong>20.</strong> 随机抽样</p>
+<details class="answer"><summary>查看答案</summary><pre>from random import sample
+a = ['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig']
+b = sample(a, 3)
+print(b)  # 随机取3个</pre></details>
+
+<h2>八、浅拷贝 vs 深拷贝</h2>
+
+<p><strong>21.</strong> 浅拷贝和深拷贝的区别</p>
+<details class="answer"><summary>查看答案</summary><pre>import copy
+a = [1, [2, 3], 4]
+b = a[:]            # 浅拷贝
+c = copy.deepcopy(a) # 深拷贝
+b[1][0] = 99
+c[1][0] = 999
+print(a)  # [1, [99, 3], 4]  ← 被浅拷贝影响
+print(b)  # [1, [99, 3], 4]
+print(c)  # [1, [999, 3], 4] ← 深拷贝独立
+# 浅拷贝 = 换了个外壳，里面装的东西还是同一批
+# 深拷贝 = 连里面装的东西也全部重新复制了一份</pre></details>
+
+<h2>九、分组与排序</h2>
+
+<p><strong>22.</strong> 按首字母分组</p>
+<details class="answer"><summary>查看答案</summary><pre>a = ['banana', 'apple', 'cherry', 'apricot', 'blueberry']
+a.sort()
+b = {}
+for i in a:
+    first = i[0]
+    if first not in b:
+        b[first] = []
+    b[first].append(i)
+print(b)
+# {'a': ['apple', 'apricot'], 'b': ['banana', 'blueberry'], 'c': ['cherry']}</pre></details>
+
+<p><strong>23.</strong> 两个列表的交集和差集</p>
+<details class="answer"><summary>查看答案</summary><pre>a = [1, 2, 3, 4, 5]
+b = [4, 5, 6, 7, 8]
+c = a + b
+count = {}
+for i in c:
+    count[i] = count.get(i, 0) + 1
+intersection = [k for k, v in count.items() if v == 2]  # 交集
+diff_a = [x for x in a if x not in b]                   # a 有 b 没有
+print(intersection)  # [4, 5]
+print(diff_a)        # [1, 2, 3]</pre></details>
+
+<h2>十、综合练习</h2>
+
+<p><strong>24.</strong> 判断质数 + 列表推导式生成质数列表</p>
+<details class="answer"><summary>查看答案</summary><pre>def is_zhi_shu(num):
+    if num <= 1:
+        return False
+    for i in range(2, num):
+        if num % i == 0:
+            return False
+    return True
+
+b = [x for x in range(101) if is_zhi_shu(x)]
+print(b)
+# [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]</pre></details>
+
 </body></html>

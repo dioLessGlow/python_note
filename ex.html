@@ -181,7 +181,7 @@ uniform()   # 随机浮点数</pre>
 
     <div class="section">
       <div class="section-header" onclick="toggle(this)">
-        <h2><span> 列表练习题</span><span class="badge">❌ 暂无答案</span></h2>
+        <h2><span> 列表练习题</span><span class="badge">✅ 有答案</span></h2>
         <span class="arrow">▼</span>
       </div>
       <div class="section-body">
@@ -189,9 +189,88 @@ uniform()   # 随机浮点数</pre>
           <div class="q">题目文件</div>
           <div class="a"><a href="练习题/列表练习题.html" target="_blank">📄 列表练习题</a></div>
         </div>
-        <div class="qa-item">
-          <div class="q">状态</div>
-          <div class="a">暂无答案文件</div>
+        <div class="qa-item" style="background:#f0f8f0;border-top:2px solid #1a7f37;border-radius:0 0 6px 6px;">
+          <div class="q" style="font-size:15px;color:#1a7f37;">📖 知识点总结</div>
+          <div class="a">
+            <p><strong>一、列表切片</strong></p>
+            <pre>a[start:stop:step]   # 基本语法
+a[:n]    # 前 n 个
+a[-n:]   # 后 n 个
+a[::2]   # 步长为 2
+a[::-1]  # 反转
+a[3:7] = [30,40,50]  # 切片赋值（替换/扩容）</pre>
+
+            <p><strong>二、遍历时删除元素的正确做法</strong></p>
+            <pre># ❌ 错误：for num in range(len(a)): a.pop(num)     → 索引错位
+# ❌ 错误：for num in a: a.remove(num)              → 漏删
+# ✅ 方法1：列表推导式
+a = [i for i in a if condition]
+# ✅ 方法2：倒序遍历删除
+for i in range(len(a)-1, -1, -1):
+    if condition: a.pop(i)
+# ✅ 方法3：创建新列表
+new_a = [i for i in a if condition]</pre>
+
+            <p><strong>三、列表推导式</strong></p>
+            <pre>[expression for item in iterable if condition]
+
+# 示例
+[i for i in a if i <= 10]           # 过滤
+[s := s + i for i in a]            # 海象运算符累加
+[len(i) for i in nested]           # 处理嵌套
+[k for k, v in count.items() if v == 1]  # 字典过滤</pre>
+
+            <p><strong>四、列表与字典配合</strong></p>
+            <pre># 统计次数（经典模式）
+count = {}
+for num in a:
+    count[num] = count.get(num, 0) + 1
+
+# 找出现最多的元素
+max_key = max(count, key=count.get)
+
+# 两个列表合成字典
+d = dict(zip(keys, values))
+
+# 分组（按首字母）
+groups = {}
+for item in sorted(a):
+    key = item[0]
+    if key not in groups:
+        groups[key] = []
+    groups[key].append(item)</pre>
+
+            <p><strong>五、浅拷贝 vs 深拷贝</strong></p>
+            <pre>b = a[:]              # 浅拷贝：外层独立，内层共享
+c = copy.copy(a)      # 同上
+d = copy.deepcopy(a)  # 深拷贝：完全独立
+
+# 浅拷贝 = 换外壳，里面装的东西还是同一批
+# 深拷贝 = 连里面装的东西也全部重新复制了一份</pre>
+
+            <p><strong>六、常用列表方法</strong></p>
+            <pre>a.append(x)    # 末尾添加
+a.pop(i)       # 删除并返回索引 i 处元素
+a.remove(x)    # 删除第一个匹配值
+a.sort()       # 原地排序
+sorted(a)      # 返回新排序列表
+a.reverse()    # 原地反转
+len(a)         # 长度
+a + b          # 拼接
+a * n          # 重复
+x in a         # 成员判断</pre>
+
+            <p><strong>七、其他技巧</strong></p>
+            <pre>range(10, 101, 10)      # range(start, stop, step)
+list(range(...))        # range 转列表
+random.sample(a, 3)     # 随机抽样
+zip_longest(a, b)       # 不等长配对（短的补 None）
+' '.join(list)          # 列表→字符串
+string.split(' ')       # 字符串→列表
+b + [中间] + c          # 列表重排
+sum(list)               # 求和
+any() / all()           # 任一/全部为真</pre>
+          </div>
         </div>
       </div>
     </div>
@@ -224,7 +303,7 @@ uniform()   # 随机浮点数</pre>
 
     <div class="section">
       <div class="section-header" onclick="toggle(this)">
-        <h2><span> Python 语句、函数练习题</span><span class="badge">❌ 暂无答案</span></h2>
+        <h2><span> Python 语句、函数练习题</span></h2>
         <span class="arrow">▼</span>
       </div>
       <div class="section-body">
@@ -232,9 +311,6 @@ uniform()   # 随机浮点数</pre>
           <div class="q">题目文件</div>
           <div class="a"><a href="练习题/Python+语句、函数练习题.html" target="_blank">📄 Python+语句、函数练习题</a></div>
         </div>
-        <div class="qa-item">
-          <div class="q">状态</div>
-          <div class="a">暂无答案文件</div>
-        </div>
       </div>
     </div>
+  </div>
