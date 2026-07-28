@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<title>Class练习题</title>
+<style>
+body{font-family:-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:20px;line-height:1.8;background:#f0f4f0;color:#1f2328;}
+h1{color:#1a7f37;border-bottom:2px solid #1a7f37;padding-bottom:8px;}
+pre{background:#fff;border:1px solid #d0d7de;border-radius:6px;padding:12px 16px;overflow-x:auto;font-size:14px;line-height:1.6;}
+</style></head><body>
+<h1>Class练习题</h1>
+<p>Class练习题</p>
+<p>定义一个 BankAccount 类，包含属性 owner（账户持有人）和 balance（余额，默认为 0）。在 init 中通过参数设置 owner，balance 有默认值。要求：创建两个实例（一个指定余额，一个不指定），分别打印 owner 和 balance。</p>
+<pre>class BankAccount:</pre>
+<pre>    def __init__(self, owner, balance=0):</pre>
+<pre>        self.owner = owner</pre>
+<pre>        self.balance = balance</pre>
+<pre>account1 = BankAccount(&quot;张三&quot;,1)</pre>
+<pre>account2 = BankAccount(&quot;李四&quot;)</pre>
+<pre>print(f&quot;账户名：{account1.owner}, 余额: {account1.balance}&quot;)</pre>
+<pre>print(f&quot;账户名：{account2.owner}, 余额: {account2.balance}&quot;)</pre>
+<p>在 BankAccount 类中添加实例方法 deposit(amount) 和 withdraw(amount)。deposit 增加余额；withdraw 减少余额，若余额不足则抛出 ValueError(&quot;余额不足&quot;)。要求：创建实例，依次存入 500、取出 200、再尝试取出 400，观察异常。</p>
+<pre>class BankAccount:</pre>
+<pre>    def __init__(self, owner, balance=0):</pre>
+<pre>        self.owner = owner</pre>
+<pre>        self.balance = balance</pre>
+<pre>    def deposit(self,amount):</pre>
+<pre>        if amount &lt;= 0:</pre>
+<pre>            raise ValueError(&quot;存款金额必须大于0&quot;)</pre>
+<pre>        self.balance += amount</pre>
+<pre>        print(f&quot;存款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>    def withdraw(self, amount):</pre>
+<pre>        if self.balance -amount &gt;= 0:</pre>
+<pre>            self.balance -= amount</pre>
+<pre>            print(f&quot;取款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>        else:</pre>
+<pre>            raise ValueError(&quot;余额不足&quot;)</pre>
+<pre>account1 = BankAccount(&quot;张三&quot;,)</pre>
+<pre>account2 = BankAccount(&quot;李四&quot;)</pre>
+<pre>account1.deposit(500)</pre>
+<pre>account1.withdraw(200)</pre>
+<pre>try:</pre>
+<pre>    account1.withdraw(400)</pre>
+<pre>except ValueError as e:</pre>
+<pre>    print(f&quot;发生错误：{e}&quot;)</pre>
+<p>为 BankAccount 添加类属性 bank_name = &quot;Python Bank&quot; 和类属性 interest_rate = 0.015。创建两个不同实例，打印它们的 bank_name；然后修改类属性 interest_rate = 0.02，观察两个实例的 interest_rate 是否同步变化。用文字说明原因。</p>
+<pre>class BankAccount:</pre>
+<p>    bank_name = &quot;Python Bank&quot;</p>
+<p>    interest_rate = 0.015</p>
+<pre>    def __init__(self, owner, balance=0):</pre>
+<pre>        self.owner = owner</pre>
+<pre>        self.balance = balance</pre>
+<pre>    def deposit(self,amount):</pre>
+<pre>        if amount &lt;= 0:</pre>
+<pre>            raise ValueError(&quot;存款金额必须大于0&quot;)</pre>
+<pre>        self.balance += amount</pre>
+<pre>        print(f&quot;存款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>    def withdraw(self, amount):</pre>
+<pre>        if self.balance -amount &gt;= 0:</pre>
+<pre>            self.balance -= amount</pre>
+<pre>            print(f&quot;取款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>        else:</pre>
+<pre>            raise ValueError(&quot;余额不足&quot;)</pre>
+<pre>account1 = BankAccount(&quot;张三&quot;)</pre>
+<pre>account2 = BankAccount(&quot;李四&quot;)</pre>
+<pre>print(account1.bank_name)</pre>
+<pre>print(account2.bank_name)</pre>
+<p>BankAccount.interest_rate = 0.02</p>
+<pre>print(account1.bank_name)</pre>
+<pre>print(account2.bank_name)</pre>
+<p>同步变化，因为类属性是类的属性不是实例的属性，类属性变化实例相关的属性也会变化</p>
+<p>定义 SavingsAccount 继承 BankAccount。在初始化时额外接收 interest_rate 参数，并调用父类 init 设置 owner 和 balance。添加方法 apply_interest()，按当前余额和 interest_rate 计算利息并加入余额。要求：创建实例，执行 apply_interest() 后打印余额。</p>
+<pre>class BankAccount:</pre>
+<p>    bank_name = &quot;Python Bank&quot;</p>
+<p>    interest_rate = 0.015</p>
+<pre>    def __init__(self, owner, balance=0):</pre>
+<pre>        self.owner = owner</pre>
+<pre>        self.balance = balance</pre>
+<pre>    def deposit(self, amount):</pre>
+<pre>        if amount &lt;= 0:</pre>
+<pre>            raise ValueError(&quot;存款金额必须大于0&quot;)</pre>
+<pre>        self.balance += amount</pre>
+<pre>        print(f&quot;存款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>    def withdraw(self, amount):</pre>
+<pre>        if self.balance - amount &gt;= 0:</pre>
+<pre>            self.balance -= amount</pre>
+<pre>            print(f&quot;取款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>        else:</pre>
+<pre>            raise ValueError(&quot;余额不足&quot;)</pre>
+<pre>account1 = BankAccount(&quot;张三&quot;)</pre>
+<pre>account2 = BankAccount(&quot;李四&quot;)</pre>
+<pre>print(account1.bank_name)</pre>
+<pre>print(account2.bank_name)</pre>
+<p>BankAccount.interest_rate = 0.02</p>
+<pre>print(account1.interest_rate)</pre>
+<pre>print(account2.interest_rate)</pre>
+<pre>class SavingsAccount(BankAccount):</pre>
+<pre>    def __init__(self, owner, balance=0, interest_rate=0.0):</pre>
+<p>        super().__init__(owner, balance)</p>
+<pre>        self.interest_rate = interest_rate</pre>
+<pre>    def apply_interest(self):</pre>
+<pre>        self.balance += self.balance * self.interest_rate</pre>
+<pre>        print(f&quot;利息加总金为：{self.balance}&quot;)</pre>
+<pre>account3 = SavingsAccount(&quot;王五&quot;, 10000, 0.1)</pre>
+<pre>account3.apply_interest()</pre>
+<p>在 SavingsAccount 中重写 deposit(amount) 方法：存款时先调用父类的 deposit 存入本金，然后自动将本金的 1% 作为奖励金加入余额（例如存 100 实际到账 101）。要求：验证重写后存入 1000，余额是否为 1010。</p>
+<pre>class BankAccount:</pre>
+<p>    bank_name = &quot;Python Bank&quot;</p>
+<p>    interest_rate = 0.015</p>
+<pre>    def __init__(self, owner, balance=0):</pre>
+<pre>        self.owner = owner</pre>
+<pre>        self.balance = balance</pre>
+<pre>    def deposit(self, amount):</pre>
+<pre>        if amount &lt;= 0:</pre>
+<pre>            raise ValueError(&quot;存款金额必须大于0&quot;)</pre>
+<pre>        self.balance += amount</pre>
+<pre>    def withdraw(self, amount):</pre>
+<pre>        if self.balance - amount &gt;= 0:</pre>
+<pre>            self.balance -= amount</pre>
+<pre>            print(f&quot;取款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>        else:</pre>
+<pre>            raise ValueError(&quot;余额不足&quot;)</pre>
+<pre>account1 = BankAccount(&quot;张三&quot;)</pre>
+<pre>account2 = BankAccount(&quot;李四&quot;)</pre>
+<pre>print(account1.bank_name)</pre>
+<pre>print(account2.bank_name)</pre>
+<p>BankAccount.interest_rate = 0.02</p>
+<pre>print(account1.interest_rate)</pre>
+<pre>print(account2.interest_rate)</pre>
+<pre>class SavingsAccount(BankAccount):</pre>
+<pre>    def __init__(self, owner, balance=0, interest_rate=0.0):</pre>
+<p>        super().__init__(owner, balance)</p>
+<pre>        self.interest_rate = interest_rate</pre>
+<pre>    def apply_interest(self):</pre>
+<pre>        self.balance += self.balance * self.interest_rate</pre>
+<pre>        print(f&quot;利息加总金为：{self.balance}&quot;)</pre>
+<pre>    def deposit(self,amount):</pre>
+<p>        super().deposit(amount)</p>
+<pre>        self.balance += amount * 0.01</pre>
+<pre>account3 = SavingsAccount(&quot;王五&quot;, 0, 0.1)</pre>
+<pre>account3.apply_interest()</pre>
+<pre>account3.deposit(1000)</pre>
+<pre>print(f&quot;存款成功，当前余额剩余：{account3.balance}&quot;)</pre>
+<p>在 BankAccount 中添加静态方法 validate_account_number(number)，检查传入字符串是否为 10 位纯数字（如 &quot;1234567890&quot; 返回 True，&quot;123-456-789&quot; 返回 False）。要求：分别测试合法和非法输入，打印结果。</p>
+<pre>class BankAccount:</pre>
+<p>    bank_name = &quot;Python Bank&quot;</p>
+<p>    interest_rate = 0.015</p>
+<pre>    def __init__(self, owner, balance=0):</pre>
+<pre>        self.owner = owner</pre>
+<pre>        self.balance = balance</pre>
+<pre>    def deposit(self, amount):</pre>
+<pre>        if amount &lt;= 0:</pre>
+<pre>            raise ValueError(&quot;存款金额必须大于0&quot;)</pre>
+<pre>        self.balance += amount</pre>
+<pre>    def withdraw(self, amount):</pre>
+<pre>        if self.balance - amount &gt;= 0:</pre>
+<pre>            self.balance -= amount</pre>
+<pre>            print(f&quot;取款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>        else:</pre>
+<pre>            raise ValueError(&quot;余额不足&quot;)</pre>
+<p>    @staticmethod</p>
+<pre>    def validate_account_number(num):</pre>
+<pre>        return isinstance(num,str) and len(num) == 10 and num.isdigit()</pre>
+<pre>print(BankAccount.validate_account_number(&quot;1000&quot;))</pre>
+<pre>print(BankAccount.validate_account_number(&quot;10000000-0&quot;))</pre>
+<pre>print(BankAccount.validate_account_number(&quot;1000000000&quot;))</pre>
+<p>在 BankAccount 中添加类方法 from_dict(cls, data)，接收字典如 {&#x27;owner&#x27;: &#x27;Alice&#x27;, &#x27;balance&#x27;: 1000}，返回一个 BankAccount 实例。要求：使用该类方法创建实例，并打印 owner 和 balance。</p>
+<pre>class BankAccount:</pre>
+<p>    bank_name = &quot;Python Bank&quot;</p>
+<p>    interest_rate = 0.015</p>
+<pre>    def __init__(self, owner, balance=0):</pre>
+<pre>        self.owner = owner</pre>
+<pre>        self.balance = balance</pre>
+<pre>    def deposit(self, amount):</pre>
+<pre>        if amount &lt;= 0:</pre>
+<pre>            raise ValueError(&quot;存款金额必须大于0&quot;)</pre>
+<pre>        self.balance += amount</pre>
+<pre>    def withdraw(self, amount):</pre>
+<pre>        if self.balance - amount &gt;= 0:</pre>
+<pre>            self.balance -= amount</pre>
+<pre>            print(f&quot;取款成功，当前余额剩余：{self.balance}&quot;)</pre>
+<pre>        else:</pre>
+<pre>            raise ValueError(&quot;余额不足&quot;)</pre>
+<p>    @classmethod</p>
+<pre>    def from_dict(cls, data):</pre>
+<pre>        return cls(data[&#x27;owner&#x27;], data.get(&#x27;balance&#x27;, 0))</pre>
+<p>    @staticmethod</p>
+<pre>    def validate_account_number(num):</pre>
+<pre>        return isinstance(num,str) and len(num) == 10 and num.isdigit()</pre>
+<pre>account = BankAccount.from_dict({&#x27;owner&#x27;: &#x27;Alice&#x27;, &#x27;balance&#x27;: 1000})</pre>
+<pre>print(account.owner)</pre>
+<pre>print(account.balance)</pre>
+<p>使用 @property 将 BankAccount 的 balance 设为只读属性（外部不能直接 self.balance = xxx 修改），同时提供受保护的 setter，在 setter 中确保设置值不能为负数（若为负数则设为 0 并打印警告）。要求：尝试通过实例.balance = -100 观察效果。</p>
+<p>定义 Transaction 类，属性为 amount（交易金额）和 fee_rate（手续费率，默认 0.02）。使用 @property 定义 net_amount，返回扣除手续费后的净额（amount * (1 - fee_rate)）。要求：创建 amount=1000、fee_rate=0.05 的实例，打印 net_amount。</p>
+<p>在 BankAccount 中实现 str 方法，使得 print(account) 输出 &quot;BankAccount(owner=Alice, balance=1000.00)&quot;（余额保留两位小数）。要求：创建实例并直接打印。</p>
+<p>在 BankAccount 中实现 repr 方法，返回字符串形如 &quot;BankAccount(&#x27;Alice&#x27;, 1000)&quot;，使得 eval(repr(account)) 可以重建一个等价的新实例（假设 eval 环境已导入类）。要求：验证 repr 输出格式。</p>
+<p>在 BankAccount 中实现 eq 方法：当两个实例的 owner 和 balance 都相等时返回 True。注意：balance 为浮点数，比较时使用容差（abs(a-b) &lt; 0.01）而非 ==。要求：创建两个属性相同的实例和一个不同的实例，验证比较结果。</p>
+<p>在 BankAccount 中实现 lt 方法，按 balance 从小到大排序。将 3 个不同余额的实例放入列表，调用 sorted(accounts) 观察排序结果。要求：打印排序后的 owner 顺序。</p>
+<p>使用 abc 模块定义抽象基类 PaymentMethod，要求子类必须实现 pay(self, amount) 和 refund(self, amount) 两个抽象方法。定义 CreditCard 和 Alipay 两个子类分别实现这两个方法（方法体只需打印 &quot;CreditCard 支付/退款 {amount} 元&quot; 等提示）。要求：创建子类实例并调用方法；尝试直接实例化 PaymentMethod 观察异常。</p>
+<p>定义 Transaction 类，使用类属性 _count 记录该类创建了多少个实例。每次 init 时 _count += 1。提供类方法 get_count() 返回当前计数。要求：创建 3 个实例，打印 Transaction.get_count()。</p>
+<p>在 BankAccount 中将 pin（密码）设为私有属性（使用双下划线 __pin），提供 @property getter 和 @pin.setter。setter 中检查：必须是 6 位纯数字字符串，否则抛出 ValueError。要求：创建实例设置合法密码，再尝试设置非法密码观察异常。</p>
+<p>定义 Wallet 类，内部维护一个列表 _accounts。实现 len 方法，使得 len(wallet) 返回账户数量。要求：创建 Wallet，添加 2 个 BankAccount 实例，打印 len(wallet)。</p>
+<p>定义 ExchangeRate 类，初始化时设置 rate（如 7.2，表示 1 美元 = 7.2 人民币）。实现 call 方法，使得实例可以像函数一样调用：er(100) 返回 720。要求：创建实例并调用 er(100) 和 er(50)。</p>
+<p>定义 Money 类，属性为 amount 和 currency（货币代码，如 &#x27;CNY&#x27;、&#x27;USD&#x27;）。实现 add 方法：两个 Money 相加时，若 currency 相同则返回新的 Money（amount 相加，currency 不变）；若 currency 不同则抛出 TypeError(&quot;货币类型不一致&quot;)。要求：分别测试同币种相加和异币种相加。</p>
+<p>定义 TransactionHistory 继承 list。重写 append 方法：只允许追加格式为 {&#x27;type&#x27;: &#x27;deposit&#x27;/&#x27;withdraw&#x27;, &#x27;amount&#x27;: 正数} 的字典；若格式不对或 amount 不是正数，则抛出 TypeError。要求：创建实例，追加合法记录和非法记录，观察差异。</p>
+</body></html>

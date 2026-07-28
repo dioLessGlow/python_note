@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<title>基础数据类型练习题</title>
+<style>
+body{font-family:-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:20px;line-height:1.8;background:#f0f4f0;color:#1f2328;}
+h1{color:#1a7f37;border-bottom:2px solid #1a7f37;padding-bottom:8px;}
+h2{color:#1a7f37;margin-top:30px;}
+pre{background:#fff;border:1px solid #d0d7de;border-radius:6px;padding:12px 16px;overflow-x:auto;font-size:14px;line-height:1.6;}
+code{background:#edf4ed;padding:2px 5px;border-radius:3px;color:#1a7f37;}
+.answer{background:#f6faf6;border:1px solid #b4e0b4;border-radius:8px;padding:12px 16px;margin:10px 0;}
+.answer summary{cursor:pointer;color:#1a7f37;font-weight:600;}
+p{margin:8px 0;}
+</style></head>
+<body>
+<h1>基础数据类型练习题</h1>
+
+<h2>一、整数类型</h2>
+
+<p><strong>1.</strong> 计算三个整数 a=23, b=8, c=5 的混合运算结果：(a + b) * c - a // b</p>
+<details class="answer"><summary>查看答案</summary><pre>a, b, c = 23, 8, 5
+print((a + b) * c - a // b)  # 147</pre></details>
+
+<p><strong>2.</strong> 计算 3 的 7 次方，然后对 100 取余数</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 3
+print(a**7 % 100)  # 87</pre></details>
+
+<p><strong>3.</strong> 计算 100 ÷ 3 的整数商和余数，并验证 商 × 3 + 余数 是否等于 100</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 100 // 3
+b = 100 % 3
+c = a * 3 + b
+if c == 100:
+    print('yes')
+else:
+    print('no')</pre></details>
+
+<p><strong>4.</strong> 将十进制数 1024 转换为二进制字符串</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 1024
+b = bin(a)
+print(b)  # 0b10000000000</pre></details>
+
+<p><strong>5.</strong> 计算 -25 的绝对值，以及 8 的立方</p>
+<details class="answer"><summary>查看答案</summary><pre>a = -25
+b = abs(a)
+c = 8**2
+print(b, c)  # 25 64</pre></details>
+
+<p><strong>6.</strong> 检查 9876543210 是否能被 3 整除</p>
+<details class="answer"><summary>查看答案</summary><pre>a = '9876543210'
+b = list(a)
+c = 0
+for num in b:
+    c += int(num)
+if c % 3 == 0:
+    print('y')  # y
+else:
+    print('n')</pre></details>
+
+<p><strong>7.</strong> 计算 1 到 50 所有奇数的和</p>
+<details class="answer"><summary>查看答案</summary><pre>a = (1 + 49) * 25 // 2
+print(a)  # 625</pre></details>
+
+<p><strong>8.</strong> 将十六进制 "FA" 转换为十进制整数</p>
+<details class="answer"><summary>查看答案</summary><pre>a = int("FA", 16)
+print(a)  # 250</pre></details>
+
+<p><strong>9.</strong> 计算表达式：15 // 4 + 20 % 6 * 2 - 3 ** 2</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 15 // 4 + 20 % 6 * 2 - 3 ** 2
+print(a)  # -2</pre></details>
+
+<p><strong>10.</strong> 轮换三个变量 a=5, b=10, c=15</p>
+<details class="answer"><summary>查看答案</summary><pre>a, b, c = 5, 10, 15
+num = a
+a = b
+b = c
+c = num
+print(a, b, c)  # 10 15 5</pre></details>
+
+<p><strong>11.</strong> 判断 97 是否是质数</p>
+<details class="answer"><summary>查看答案</summary><pre>num = 97
+for i in range(2, num):
+    if num % i == 0:
+        print('no')
+        break
+else:
+    print('y')  # y</pre></details>
+
+<p><strong>12.</strong> 计算 18 和 24 的最小公倍数</p>
+<details class="answer"><summary>查看答案</summary><pre>import math
+a, b = 16, 24
+c = math.gcd(a, b)
+d = a * b // c
+print(d)  # 48</pre></details>
+
+<p><strong>13.</strong> 将 3665 秒转换为 时:分:秒</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 3665
+h = a // 3600
+m = (a - 3600) // 60
+s = (a - 3600) % 60
+print(f"{h:02d}:{m:02d}:{s:02d}")  # 01:01:05</pre></details>
+
+<p><strong>14.</strong> 计算单利利息：本金 5000，年利率 3.8%，存 5 年</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 5000 * 0.038 * 5
+print(a)  # 950.0</pre></details>
+
+<p><strong>15.</strong> 计算 10! 结果末尾有多少个连续的 0</p>
+<details class="answer"><summary>查看答案</summary><pre>result = 1
+for i in range(1, 11):
+    result *= i
+count = 0
+for c in reversed(str(result)):
+    if c == "0":
+        count += 1
+    else:
+        break
+print(count)  # 2</pre></details>
+
+<h2>二、浮点数类型</h2>
+
+<p><strong>1.</strong> 计算斜边长度（直角边 3.0 和 4.0）</p>
+<details class="answer"><summary>查看答案</summary><pre>a, b = 3.0, 4.0
+c = (a**2 + b**2)**0.5
+print(c)  # 5.0</pre></details>
+
+<p><strong>2.</strong> 华氏 98.5 度转摄氏</p>
+<details class="answer"><summary>查看答案</summary><pre>F = 98.5
+c = (F - 32) * 5 / 9
+print(c)  # 36.944...</pre></details>
+
+<p><strong>3.</strong> 0.1 + 0.1 + 0.1 的结果</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 0.1 + 0.1 + 0.1
+print(a)  # 0.30000000000000004（浮点精度问题）</pre></details>
+
+<p><strong>4.</strong> 3.14159 向上/向下取整</p>
+<details class="answer"><summary>查看答案</summary><pre>import math
+a = 3.14159
+b = math.ceil(a)
+c = math.floor(a)
+print(b, c)  # 4 3</pre></details>
+
+<p><strong>5.</strong> 27 的立方根</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 27 ** (1/3)
+print(a)  # 3.0</pre></details>
+
+<p><strong>6.</strong> 0.0000456 科学计数法</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 0.0000456
+print(f"{a:.2e}")  # 4.56e-05</pre></details>
+
+<p><strong>7.</strong> (12.5 - 3.5) / 2.0 + 4.8 * 3</p>
+<details class="answer"><summary>查看答案</summary><pre>a = (12.5 - 3.5) / 2.0 + 14.8 * 3
+print(a)  # 48.9</pre></details>
+
+<p><strong>8.</strong> 判断 4.000 是否为整数</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 4.000
+b = a.is_integer()
+print(b)  # True</pre></details>
+
+<p><strong>9.</strong> 百公里油耗</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 385.5
+b = 28.3
+c = b / a * 100
+print(c)  # 7.34...</pre></details>
+
+<p><strong>10.</strong> 89.567 拆分为整数和小数</p>
+<details class="answer"><summary>查看答案</summary><pre>import math
+a = 89.567
+b, c = math.modf(a)
+print(f"{b:.3f},{int(c)}")  # 0.567,89</pre></details>
+
+<p><strong>11.</strong> 浮点容差比较 0.1+0.2 与 0.3</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 0.1 + 0.2 - 0.3
+print(a < 0.0001)  # True</pre></details>
+
+<p><strong>12.</strong> 2.5 格式化左对齐宽度6保留2位</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 2.5
+print(f"{a:<6.2f}")  # "2.50  "</pre></details>
+
+<p><strong>13.</strong> π/2 弧度转角度</p>
+<details class="answer"><summary>查看答案</summary><pre>import math
+a = 1.5708
+b = a * 180 / math.pi
+print(b)  # 90.0</pre></details>
+
+<p><strong>14.</strong> 年均增长率</p>
+<details class="answer"><summary>查看答案</summary><pre>a = (120 / 100) ** (1/3) - 1
+print(a)  # 0.0627...
+# b = 100 * (1 + a) ** 3
+# print(b)</pre></details>
+
+<p><strong>15.</strong> 随机浮点数是否在 [25, 75]</p>
+<details class="answer"><summary>查看答案</summary><pre>from random import uniform
+a = uniform(0, 100)
+print(a)
+if 25 <= a <= 75:
+    print("y")
+else:
+    print("n")</pre></details>
+
+<h2>三、字符串类型</h2>
+
+<p><strong>1.</strong> 将 "Python"、"is"、"powerful" 连接成一句</p>
+<details class="answer"><summary>查看答案</summary><pre>a = ["Python", "is", "powerful"]
+print(' '.join(a))  # "Python is powerful"</pre></details>
+
+<p><strong>2.</strong> 提取 "ABCDEFGHIJ" 第2到第8个字符，步长2</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "ABCDEFGHIJ"
+b = a[1:9:2]
+print(b)  # "BDFH"</pre></details>
+
+<p><strong>3.</strong> "hello world" 首字母大写</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "hello world"
+print(a.title())  # "Hello World"</pre></details>
+
+<p><strong>4.</strong> 统计 "abracadabra" 中 a 和 b 的次数</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "abracadabra"
+print(a.count('a'), a.count('b'))  # 5 2
+# 或循环统计
+sum_a = 0; sum_b = 0
+for i in a:
+    if i == 'a': sum_a += 1
+    elif i == 'b': sum_b += 1
+print(sum_a, sum_b)  # 5 2</pre></details>
+
+<p><strong>5.</strong> 检查 "Hello123" 是否同时包含字母和数字</p>
+<details class="answer"><summary>查看答案</summary><pre>s = "Hello123"
+has_alpha = any(c.isalpha() for c in s)
+has_digit = any(c.isdigit() for c in s)
+if has_alpha and has_digit:
+    print("y")  # y
+else:
+    print("n")</pre></details>
+
+<p><strong>6.</strong> "apple;banana;cherry;date" 分割取前两个</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "apple;banana;cherry;date"
+b = a.split(';')
+print(b[0:2])  # ['apple', 'banana']</pre></details>
+
+<p><strong>7.</strong> 格式化 "Laptop" 价格 8999.00</p>
+<details class="answer"><summary>查看答案</summary><pre>a = 8999.00
+b = str(a)
+print(f'Laptop: ￥{b}')  # "Laptop: ￥8999.0"</pre></details>
+
+<p><strong>8.</strong> 去除 ">>>Warning<<<" 两端的 > 和 <</p>
+<details class="answer"><summary>查看答案</summary><pre>a = ">>>Warning<<<"
+b = a.strip('><')
+print(b)  # "Warning"</pre></details>
+
+<p><strong>9.</strong> 替换前两个 o 为 0</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "The quick brown fox jumps over the lazy dog"
+b = a.replace('o', '0', 2)
+print(b)  # "The quick br0wn f0x jumps over the lazy dog"</pre></details>
+
+<p><strong>10.</strong> 布尔值 True 和整数 100 转字符串拼接</p>
+<details class="answer"><summary>查看答案</summary><pre>a = True
+b = 100
+print(str(a) + '，' + str(b))  # "True，100"</pre></details>
+
+<p><strong>11.</strong> 反转 "Python 3.12"</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "Python 3.12"
+print(a[::-1])  # "21.3 nohtyP"</pre></details>
+
+<p><strong>12.</strong> 忽略空格大小写判断回文</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "A man a plan a canal Panama"
+b = a.lower().split()
+c = ''.join(b)
+d = c == c[::-1]
+print(d)  # True</pre></details>
+
+<p><strong>13.</strong> 身份证号生日替换为 *</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "110101199001011234"
+b = a[6:14]
+c = a.replace(b, "********")
+print(c)  # "110101********1234"</pre></details>
+
+<p><strong>14.</strong> 提取字符串中的所有数字（含负号和小数点）</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "Temperature: -5.67°C, Humidity: 82.3%"
+b = '-1234567890.'
+c = []
+d = ''
+for i in a:
+    if i in b:
+        d += i
+    else:
+        if d:
+            c.append(d)
+            d = ''
+if d:
+    c.append(d)
+print(c)  # ['-5.67', '82.3']</pre></details>
+
+<p><strong>15.</strong> "Na" 重复 4 次 + " Batman!"</p>
+<details class="answer"><summary>查看答案</summary><pre>a = "Na"
+b = a * 4 + " Batman!"
+print(b)  # "NaNaNaNa Batman!"</pre></details>
+
+</body></html>

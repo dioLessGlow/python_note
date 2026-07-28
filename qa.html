@@ -120,3 +120,424 @@ else:
         <div class="qa-item"><div class="q"><span class="tag">JSONDecodeError</span>文件内容损坏怎么办？</div><div class="a">加 <code>try-except</code> 保护：<code>except json.JSONDecodeError: names = {}</code></div></div>
       </div>
     </div>
+
+    <!-- DAY 5 -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span> Day 5 · 列表进阶与字典统计</span><span class="badge">20</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="qa-item"><div class="q"><span class="tag">列表操作</span>要怎么打代码</div><div class="a">我来帮你把刚才的交换步骤写成清晰的代码：<br>
+完整代码<br>
+<br>
+<pre>a = [1, 2, 3, 4, 5]
+print(f&quot;初始: {a}&quot;)
+# ① 3和5互换（索引2和4）
+a[2], a[4] = a[4], a[2]
+print(f&quot;3↔5后: {a}&quot;)   # [1, 2, 5, 4, 3]
+# ② 2和4互换（索引1和3）
+a[1], a[3] = a[3], a[1]
+print(f&quot;2↔4后: {a}&quot;)   # [1, 4, 5, 2, 3]
+# ③ 1再跟5互换（索引0和2）
+a[0], a[2] = a[2], a[0]
+print(f&quot;1↔5后: {a}&quot;)   # [5, 4, 1, 2, 3]
+print(f&quot;最终结果: {a}&quot;)</pre><br>
+输出<br>
+初始: [1, 2, 3, 4, 5]<br>
+3↔5后: [1, 2, 5, 4, 3]<br>
+2↔4后: [1, 4, 5, 2, 3]<br>
+1↔5后: [5, 4, 1, 2, 3]<br>
+最终结果: [5, 4, 1, 2, 3]<br>
+核心语法<br>
+<br>
+<pre># 同时交换两个元素（不用临时变量）
+a[i], a[j] = a[j], a[i]</pre><br>
+一句话<br>
+用 a[i], a[j] = a[j], a[i] 同时交换两个元素，按顺序执行三步互换即可。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">字典统计</span><code>a=[10,20,30,20,40,10,50,20] count={} for i in a: count[i]=count.get(i,0)+1 b=[i for i in a if count[i].max]</code></div><div class="a">这段代码有错误：<br>
+错误<br>
+<pre>b = [i for i in a if count[i].max]   # ❌ AttributeError!</pre><br>
+问题：count[i] 是整数，没有 .max 方法。<br>
+修正：<br>
+<pre>a = [10, 20, 30, 20, 40, 10, 50, 20]
+count = {}
+for i in a:
+    count[i] = count.get(i, 0) + 1
+max_count = max(count.values())   # 3
+b = [i for i in a if count[i] == max_count]
+print(b)   # [20, 20, 20]</pre><br>
+一句话<br>
+count[i] 是整数次数，要用 max(count.values()) 找最大值，再用 count[i] == max_count 比较。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">字典统计</span><code>[20, 20, 20]</code>怎么算20的次数</div><div class="a">方法1：<br>
+<pre>count = len(b)          # 3</pre><br>
+方法2：用 count 方法<br>
+<pre>a.count(20)             # 3</pre><br>
+方法3：遍历统计<br>
+<pre>count = 0
+for x in b:
+    if x == 20:
+        count += 1</pre><br>
+你的代码逻辑<br>
+<pre>max_count = max(count.values())   # 3
+b = [i for i in a if count[i] == max_count]</pre><br>
+a 里有 3 个 20，遍历到每个 20 时都满足条件，所以都保留。<br>
+如果只要一个 20：<br>
+<pre>b = list({i for i in a if count[i] == max_count})</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">字典统计</span><code>a=[10,20,30,20,40,10,50,20] count={} for i in a: count[i]=count.get(i,0)+1 b=[i for i in a if count[i]==max(count.values())] for x in b: print(x)</code></div><div class="a">这段代码能运行，但效率有问题——max(count.values()) 在推导式里每轮都重复计算。<br>
+优化：<br>
+<pre>max_count = max(count.values())   # 只算一次
+b = [i for i in a if count[i] == max_count]</pre><br>
+如果只输出元素和次数：<br>
+<pre>for x in set(b):
+    print(f"{x} 出现 {max_count} 次")</pre><br>
+更简洁：<br>
+<pre>most_common = max(count, key=count.get)   # 20
+max_count = count[most_common]            # 3
+print(f"{most_common} 出现 {max_count} 次")   # 20 出现 3 次</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">综合</span>要20和3</div><div class="a">用 count.items() 遍历键值对：<br>
+<pre>most_common = [k for k, v in count.items() if v == max_count]
+for x in most_common:
+    print(f"{x} 出现 {max_count} 次")</pre><br>
+或者用 max 的 key 参数：<br>
+<pre>most_common = max(count, key=count.get)   # 20
+print(f"{most_common} 出现 {count[most_common]} 次")</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">综合</span><code>a=[&#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;] b=[1, 2] c=b+&#x27;None&#x27; print(c)</code></div><div class="a">错误：列表和字符串不能相加。<br>
+修正：<br>
+场景1：列表加字符串元素<br>
+<pre>c = b + [&#x27;None&#x27;]      # [1, 2, &#x27;None&#x27;]</pre><br>
+场景2：用 None（空值）<br>
+<pre>c = b + [None]        # [1, 2, None]</pre><br>
+场景3：字符串拼接<br>
+<pre>c = str(b) + &#x27;None&#x27;   # &#x27;[1, 2]None&#x27;</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">zip_longest</span>itertools.zip_longest？</div><div class="a">zip_longest 是 zip() 的加长版，不等长列表用填充值补齐。<br>
+对比：<br>
+<pre>from itertools import zip_longest
+a = [&#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;]
+b = [1, 2]
+list(zip(a, b))                    # [(&#x27;a&#x27;, 1), (&#x27;b&#x27;, 2)]  ← c 被丢了
+list(zip_longest(a, b))            # [(&#x27;a&#x27;, 1), (&#x27;b&#x27;, 2), (&#x27;c&#x27;, None)]
+list(zip_longest(a, b, fillvalue=&#x27;?&#x27;)) # [(&#x27;a&#x27;, 1), (&#x27;b&#x27;, 2), (&#x27;c&#x27;, &#x27;?&#x27;)]</pre><br>
+一句话：zip_longest 以最长为准，短的用 fillvalue 补齐，不会丢数据。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">zip_longest</span><code>a=[&#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;] b=[1, 2] d=dict(zip(a,b)) print(d)</code> 为什么 c 丢了</div><div class="a">zip 以最短列表为准，a 有 3 个元素，b 只有 2 个，只配对前 2 个，&#x27;c&#x27; 被丢弃。<br>
+结果：{&#x27;a&#x27;: 1, &#x27;b&#x27;: 2}<br>
+想保留 c：<br>
+<pre>from itertools import zip_longest
+d = dict(zip_longest(a, b, fillvalue=None))  # {&#x27;a&#x27;: 1, &#x27;b&#x27;: 2, &#x27;c&#x27;: None}</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">浅深拷贝</span>复制列表 [1, [2, 3], 4]，分别使用浅拷贝和深拷贝各复制一份。修改副本中内层列表的第一个元素为 99</div><div class="a">代码：<br>
+<pre>import copy
+a = [1, [2, 3], 4]
+b = copy.copy(a)        # 浅拷贝
+c = copy.deepcopy(a)    # 深拷贝
+b[1][0] = 99
+c[1][0] = 88
+print(f&quot;原列表 a: {a}&quot;)  # [1, [99, 3], 4]  ← 被浅拷贝牵连
+print(f&quot;浅拷贝 b: {b}&quot;)  # [1, [99, 3], 4]
+print(f&quot;深拷贝 c: {c}&quot;)  # [1, [88, 3], 4]  ← 独立</pre><br>
+原因：浅拷贝内层列表共享引用，深拷贝递归复制所有层级完全独立。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">浅深拷贝</span>什么是外层元素，内层列表</div><div class="a">列表结构：<br>
+<pre>a = [1, [2, 3], 4]
+#     ↑    ↑      ↑
+#   外层  内层   外层
+#   元素  列表   元素</pre><br>
+修改时的区别：<br>
+改外层元素（a[0]=99）→ 浅拷贝互不影响<br>
+改内层元素（a[1][0]=99）→ 浅拷贝牵连原列表，深拷贝独立</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">浅深拷贝</span><code>import copy a=[1,[2,3],4] b=a[:] c=copy.copy(a) d=copy.deepcopy(a) b[0]=99 c[0]=99 d[0]=99 print(b) print(c) print(d)</code></div><div class="a">三个输出一样：<br>
+<pre>[99, [2, 3], 4]
+[99, [2, 3], 4]
+[99, [2, 3], 4]</pre><br>
+为什么都一样？改的是外层元素（整数），整数不可变，直接替换引用，互不影响。<br>
+关键区别在修改内层对象：<br>
+<pre>b[1][0] = 99   # 浅拷贝：a 和 b 都变！
+d[1][0] = 99   # 深拷贝：只有 d 变，a 不变</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">浅深拷贝</span>打印原列表和两个副本，观察差异并解释原因</div><div class="a">完整演示：<br>
+<pre>import copy
+a = [1, [2, 3], 4]
+b = copy.copy(a)
+c = copy.deepcopy(a)
+b[1][0] = 99
+c[1][0] = 88
+print(f&quot;原列表 a: {a}&quot;)  # [1, [99, 3], 4]  ← 被牵连
+print(f&quot;浅拷贝 b: {b}&quot;)  # [1, [99, 3], 4]
+print(f&quot;深拷贝 c: {c}&quot;)  # [1, [88, 3], 4]  ← 独立</pre><br>
+原因：浅拷贝改内层列表会牵连原列表（共享对象），深拷贝完全独立（递归复制）。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">分组</span>按字符串首字母对列表 [&#x27;banana&#x27;, &#x27;apple&#x27;, &#x27;cherry&#x27;, &#x27;apricot&#x27;, &#x27;blueberry&#x27;] 进行分组</div><div class="a">方法1：普通循环<br>
+<pre>result = {}
+for word in words:
+    first = word[0]
+    if first not in result:
+        result[first] = []
+    result[first].append(word)</pre><br>
+方法2：defaultdict（推荐）<br>
+<pre>from collections import defaultdict
+result = defaultdict(list)
+for word in words:
+    result[word[0]].append(word)
+print(dict(result))  # {&#x27;b&#x27;: [...], &#x27;a&#x27;: [...], &#x27;c&#x27;: [...]}</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">分组</span><code>if first not in result: result[first] = []</code> 是什么作用</div><div class="a">检查字典中是否已有该 key，没有就创建空列表防止 KeyError。<br>
+如果不加：<br>
+<pre>result = {}
+result[&#x27;a&#x27;].append(&#x27;apple&#x27;)   # ❌ KeyError: &#x27;a&#x27;</pre><br>
+对比 defaultdict：<br>
+<pre>result = defaultdict(list)     # 自动处理，key 不存在时给空列表
+result[&#x27;a&#x27;].append(&#x27;apple&#x27;)    # ✅ 不用判断</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">分组</span><code>a=[&#x27;banana&#x27;,&#x27;apple&#x27;,&#x27;cherry&#x27;,&#x27;apricot&#x27;,&#x27;blueberry&#x27;] b={} for x in a: first=x[0] b[first]=[] b[first].append(x) print(b)</code></div><div class="a">错误：每次循环都清空列表，导致只保留最后一个单词。<br>
+<pre># 输出：{&#x27;b&#x27;: [&#x27;blueberry&#x27;], &#x27;a&#x27;: [&#x27;apricot&#x27;], &#x27;c&#x27;: [&#x27;cherry&#x27;]}</pre><br>
+修正：只在 key 不存在时才创建空列表<br>
+<pre>a = [&#x27;banana&#x27;, &#x27;apple&#x27;, &#x27;cherry&#x27;, &#x27;apricot&#x27;, &#x27;blueberry&#x27;]
+b = {}
+for x in a:
+    first = x[0]
+    if first not in b:
+        b[first] = []
+    b[first].append(x)</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">质数判断</span><code>def zhushu(num): for i in range(2,num): if num &lt;=1: print(&#x27;bushi&#x27;) elif num%i!=0: print(&#x27;shi&#x27;) print(zhushu(2))</code></div><div class="a">多个问题：<br>
+1. num&lt;=1 放在循环内，num=2 时 range(2,2) 为空，循环不执行<br>
+2. num%i!=0 不是质数判断标准<br>
+3. 无 return，默认返回 None<br>
+正确写法：<br>
+<pre>def zhushu(num):
+    if num &lt;= 1:
+        return &#x27;不是质数&#x27;
+    for i in range(2, num):
+        if num % i == 0:      # 能被整除 → 不是质数
+            return &#x27;不是质数&#x27;
+    return &#x27;是质数&#x27;            # 循环走完都没被整除 → 是质数</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">质数判断</span><code>def zhushu(num): if num &lt;=1: print(&#x27;bushi&#x27;) for i in range(2,num): if num%i!=0: print(&#x27;shi&#x27;) else: print(&#x27;bushi&#x27;) zhushu(2)</code></div><div class="a">num=2：range(2,2) 为空，循环不执行，也没有打印。<br>
+num=9：9%2=1!=0 → shi，9%3=0 → bushi... 输出混乱。<br>
+正确逻辑：找到能整除的立刻 return，循环走完都没找到才是质数。<br>
+<pre>def zhushu(num):
+    if num &lt;= 1:
+        print(&#x27;bushi&#x27;)
+        return
+    for i in range(2, num):
+        if num % i == 0:
+            print(&#x27;bushi&#x27;)
+            return
+    print(&#x27;shi&#x27;)</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">质数判断</span>生成一个包含 1 到 100 中所有质数的列表（使用列表推导式，需先定义一个判断质数的辅助函数）</div><div class="a"><pre>def is_prime(n):
+    if n &lt;= 1:
+        return False
+    for i in range(2, n):
+        if n % i == 0:
+            return False
+    return True
+
+primes = [x for x in range(1, 101) if is_prime(x)]
+print(primes)
+# [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]</pre><br>
+优化版：只需检查到 √n<br>
+<pre>import math
+def is_prime(n):
+    if n &lt;= 1:
+        return False
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            return False
+    return True</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">质数判断</span><code>b=[] def zhushu(num): if num &lt;=1: print(&#x27;bushi&#x27;) for i in range(2,num): if num % i !=0: print(&#x27;shi&#x27;) return else: print(&#x27;bushi&#x27;) b=[i for i in range(101) if(zhushu(i))] print(b)</code></div><div class="a">严重问题：<br>
+1. zhushu 没有 return 值，默认返回 None，if None 永远为 False<br>
+2. num%i!=0 就 return，只检查第一个 i，不是质数判断<br>
+3. 大量 print 刷屏<br>
+结果：b = []（空列表）<br>
+正确写法：<br>
+<pre>def is_prime(n):
+    if n &lt;= 1:
+        return False
+    for i in range(2, n):
+        if n % i == 0:
+            return False
+    return True
+b = [i for i in range(101) if is_prime(i)]</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">质数判断</span><code>b=[] def zhushu(num): if num &lt;=1: return False for i in range(2,num): if num % i ==0: return False else: return True b=[i for i in range(101) if(zhushu(i))] print(b)</code></div><div class="a">错误：return True 在 else 里，只检查第一个 i=2 就返回。<br>
+zhushu(9)：i=2, 9%2=1，走 else → return True ❌<br>
+修正：return True 放在循环外面，循环走完没找到因数才是质数。<br>
+<pre>def zhushu(num):
+    if num &lt;= 1:
+        return False
+    for i in range(2, num):
+        if num % i == 0:
+            return False      # 找到因数 → 不是质数
+    return True               # 循环走完 → 是质数</pre></div></div>
+      </div>
+    </div>
+
+    <!-- DAY 6 -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span> Day 6 · 函数进阶与高级语法</span><span class="badge">23</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="qa-item"><div class="q"><span class="tag">for-else</span><code>for i in range(5): if i == 3: break print(i, end=&#x27; &#x27;) else: print(&#x27;Done&#x27;)</code> A) 0 1 2 Done B) 0 1 2 3 4 Done C) 0 1 2 D) 0 1 2 3 4</div><div class="a">答案是 C) 0 1 2<br>
+执行过程：i=0,1,2 正常打印；i=3 break 跳出循环；for...else 中 else 被 break 跳过，不打印 &#x27;Done&#x27;。<br>
+关键：else 只在循环正常走完（没被 break）时执行。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">函数参数</span>关于函数参数，以下调用方式正确的是？<code>def func(a, b=10, *args, c, d=20, **kwargs): pass</code></div><div class="a">答案是 A) func(1, 2, 3, 4, c=5, d=6, e=7)<br>
+参数拆解：<br>
+a → 位置参数（必须）<br>
+b=10 → 默认参数<br>
+*args → 接收多余的位置参数 (3, 4)<br>
+c → 仅关键字参数（必须关键字传参）<br>
+d=20 → 仅关键字参数（默认20）<br>
+**kwargs → 多余关键字参数 {&#x27;e&#x27;: 7}<br>
+B/C/D 都违反"位置参数必须在关键字参数前面"的规则。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">函数参数</span>为什么c必须关键字传参</div><div class="a">因为 c 在 *args 后面，是"仅关键字参数"（keyword-only）。<br>
+*args 会把多余的位置参数都吃掉，后面的参数只能用关键字传参，否则有歧义。<br>
+<pre>def func(a, b=10, *args, c, d=20, **kwargs):
+    print(f&quot;a={a}, args={args}, c={c}, d={d}&quot;)
+func(1, 2, 3, 4, c=5, d=6)  # ✅
+func(1, 2, 3, 4, 5, d=6)     # ❌ 5被args接收，c没传！</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">生成器</span>以下关于生成器函数的说法，错误的是？<br>A) 包含 yield 的函数调用时返回生成器对象<br>B) 生成器可以使用 next() 逐个获取值<br>C) 生成器函数执行到 return 后会继续从头执行<br>D) 生成器表达式使用圆括号 () 定义</div><div class="a">答案是 C) 生成器函数执行到 return 后会继续从头执行 ❌<br>
+生成器遇到 return 就彻底结束，抛 StopIteration，不会从头执行。<br>
+<pre>def my_gen():
+    yield 1
+    yield 2
+    return 3          # 结束生成器
+g = my_gen()
+print(next(g))   # 1
+print(next(g))   # 2
+print(next(g))   # StopIteration（结束）</pre><br>
+要重新遍历必须重新调用函数创建新生成器。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">生成器</span>什么是生成器</div><div class="a">生成器是一种特殊的迭代器，用 yield 实现"一边循环一边计算"，省内存。<br>
+两种创建方式：<br>
+1. 生成器函数（含 yield）<br>
+<pre>def my_gen():
+    yield 1
+    yield 2
+    yield 3
+g = my_gen()
+print(next(g))  # 1</pre><br>
+2. 生成器表达式（圆括号）<br>
+<pre>gen = (x*2 for x in range(1000000))  # 几乎不占内存</pre><br>
+对比普通函数：yield 暂停保存状态，next() 唤醒继续。适合大文件、无限序列等场景。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">生成器</span><code>def my_gen(): yield 1 yield 2 yield 3 return 4 yield 3 yield 3 g = my_gen() print(next(g)) print(next(g)) print(next(g)) print(next(g))</code></div><div class="a">执行过程：<br>
+next(g) → yield 1 → 返回 1，暂停<br>
+next(g) → yield 2 → 返回 2，暂停<br>
+next(g) → yield 3 → 返回 3，暂停<br>
+next(g) → return 4 → 抛 StopIteration，生成器报废<br>
+return 后面的 yield 3, yield 3 永远不会执行。<br>
+获取 return 的值：<br>
+<pre>try:
+    print(next(g))
+except StopIteration as e:
+    print(f&quot;return 的值: {e.value}&quot;)   # 4</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">nonlocal</span><code>x = 10 def outer(): x = 20 def inner(): nonlocal x x = 30 inner() print(x) outer() print(x)</code> 输出？</div><div class="a">输出：<br>
+30<br>
+10<br>
+nonlocal x 让 inner 修改外层 outer 的局部变量（20→30），不影响全局的 x（仍是10）。<br>
+对比：<br>
+- 不写：创建 inner 自己的局部变量<br>
+- global x：修改全局变量<br>
+- nonlocal x：修改外层函数的变量</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">嵌套函数</span>nonlocal，inner()是什么</div><div class="a">inner() 是嵌套在 outer() 里的内部函数，只能在 outer() 内部调用。<br>
+nonlocal 是 Python 3 关键字，用于在嵌套函数中修改外层函数的变量。<br>
+<pre>def outer():
+    x = 20
+    def inner():
+        nonlocal x    # 改 outer 的 x，不是创建自己的
+        x = 30
+    inner()
+    print(x)          # 30</pre><br>
+三种情况对比：不写→创建局部变量；global→改全局；nonlocal→改外层函数的变量。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">continue/break</span><code>for i in [1, 2, 3]: try: if i == 2: continue print(i) finally: print(&#x27;Finally&#x27;)</code> 输出？</div><div class="a">输出：<br>
+1 Finally<br>
+Finally<br>
+3 Finally<br>
+关键：continue 跳过 print(i)，但跳不过 finally——finally 一定会执行。<br>
+对于 return、break、continue、异常，finally 都会执行后再处理。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">推导式</span><code>{k: v for k, v in [(&#x27;a&#x27;, 1), (&#x27;b&#x27;, 2), (&#x27;a&#x27;, 3)]}</code> 结果？</div><div class="a">{&#x27;a&#x27;: 3, &#x27;b&#x27;: 2}<br>
+字典的键唯一，后面的值覆盖前面的。<br>
+&#x27;a&#x27; 先赋 1，再被 3 覆盖，最终 &#x27;a&#x27;: 3。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">函数参数</span>函数定义中，**kwargs 用于接收________形式的关键字参数</div><div class="a">键值对（不定数量的关键字参数）<br>
+<pre>def func(**kwargs):
+    print(kwargs)         # {&#x27;name&#x27;: &#x27;Tom&#x27;, &#x27;age&#x27;: 20}
+func(name=&#x27;Tom&#x27;, age=20)</pre><br>
+*args 接收多余位置参数（元组），**kwargs 接收多余关键字参数（字典）。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">global</span><code>x = 100 def foo(): global x x = 200 def bar(): print(x) bar() foo() print(x)</code> 输出？</div><div class="a">输出：<br>
+200<br>
+200<br>
+global x 让 foo 修改了全局变量（100→200），bar 顺着作用域链找到全局的 200。<br>
+如果去掉 global：<br>
+<pre>x = 100
+def foo():
+    x = 200           # 创建 foo 的局部变量
+    def bar():
+        print(x)      # 找外层 foo 的 x → 200
+    bar()
+foo()
+print(x)              # 100  ← 全局的 x 没变！</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">continue/break</span>在嵌套循环中，________语句可以立即跳过当前循环的剩余代码，直接进入下一次迭代</div><div class="a">continue<br>
+<pre>for i in range(1, 6):
+    if i == 3:
+        continue      # 跳过 3
+    print(i)          # 输出：1 2 4 5</pre><br>
+对比：break 跳出整个循环，pass 什么都不做占位。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">filter/lambda</span>表达式 <code>list(filter(lambda x: x % 2 == 0, range(10)))</code> 的结果是________</div><div class="a">[0, 2, 4, 6, 8]<br>
+拆解：<br>
+range(10) → 0~9<br>
+lambda x: x % 2 == 0 → 判断偶数<br>
+filter(...) → 过滤保留 True 的元素<br>
+list(...) → 转列表</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">综合</span><code>range(10)</code>跟<code>range(0:10)</code>什么区别</div><div class="a">range(10) 和 range(0, 10) 完全等价，都是从 0 到 9。<br>
+range(0:10) 是语法错误！冒号是切片语法，range() 参数用逗号。<br>
+<pre>a = [0, 1, 2, 3, 4]
+a[0:3]        # ✅ 切片用冒号
+range(0, 10)  # ✅ range 用逗号</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">综合</span><code>0%2=0</code>？</div><div class="a">是的，0 ÷ 2 = 0 余 0，所以 0 % 2 = 0。<br>
+0 是偶数，在 filter 中被保留。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">try/finally</span><code>try: print(&#x27;A&#x27;) raise ValueError(&#x27;err&#x27;) except ValueError: print(&#x27;B&#x27;) finally: print(&#x27;C&#x27;) print(&#x27;D&#x27;)</code> 输出？</div><div class="a">A B C D<br>
+执行顺序：<br>
+1. print(&#x27;A&#x27;) → A<br>
+2. raise ValueError → 抛出异常<br>
+3. except ValueError 捕获 → print(&#x27;B&#x27;) → B<br>
+4. finally 必定执行 → print(&#x27;C&#x27;) → C<br>
+5. 最后 print(&#x27;D&#x27;) → D</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">raise</span>raise什么作用</div><div class="a">raise 主动抛出异常，中断当前执行流，跳转到异常处理。<br>
+<pre>def divide(a, b):
+    if b == 0:
+        raise ZeroDivisionError(&#x27;除数不能为0！&#x27;)
+    return a / b</pre><br>
+配合 try/except 使用，用于防御性编程（参数校验）。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">综合</span>函数使用 return a, b 返回多个值时，实质上返回的是一个元组</div><div class="a">对。return a, b 就是 return (a, b)，实质是返回元组，只是省略了括号。<br>
+<pre>def func():
+    return 1, 2
+result = func()
+print(result)        # (1, 2)
+print(type(result))  # &lt;class &#x27;tuple&#x27;&gt;
+x, y = func()        # 自动解包</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">生成器</span>普通函数（不含 yield）中也可以使用 yield 来返回生成器（ ）</div><div class="a">错。一旦写了 yield，函数就变成生成器函数，不再是普通函数。<br>
+函数体中出现 yield → 生成器函数，调用返回生成器对象。<br>
+普通函数不含 yield，用 return 返回值。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">生成器</span>怎么区别普通函数，生成器函数</div><div class="a"><pre>def normal():       # 普通函数
+    return 1
+def gen():          # 生成器函数
+    yield 1</pre><br>
+核心区别：<br>
+- 普通函数：return 返回值，一次性执行完<br>
+- 生成器函数：yield 暂停，返回生成器对象，用 next() 唤醒<br>
+验证：<br>
+<pre>import inspect
+print(inspect.isgeneratorfunction(normal))  # False
+print(inspect.isgeneratorfunction(gen))     # True</pre></div></div>
+        <div class="qa-item"><div class="q"><span class="tag">综合</span>默认参数在函数定义时求值一次，后续调用共享同一个对象（ ）</div><div class="a">对。<br>
+<pre>def func(a=[]):
+    a.append(1)
+    return a
+print(func())   # [1]
+print(func())   # [1, 1]  ← 共享同一个列表！</pre><br>
+默认参数在定义时求值，后续调用共享，所以可变对象做默认参数要小心。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">综合</span>递归函数如果没有基线条件（终止条件），一定会导致栈溢出错误（ ）</div><div class="a">对。没有终止条件→递归无限深入→调用栈无限增长→内存耗尽→RecursionError。</div></div>
+        <div class="qa-item"><div class="q"><span class="tag">综合</span>else 可以与 for 循环配合使用，当循环没有被 break 中断时执行（ ）</div><div class="a">对。<br>
+<pre>for i in range(3):
+    print(i)
+else:
+    print(&#x27;Done&#x27;)   # 循环正常走完，执行 else
+
+for i in range(3):
+    if i == 1:
+        break
+else:
+    print(&#x27;Done&#x27;)   # 被 break 中断，不执行</pre></div></div>
+      </div>
+    </div>

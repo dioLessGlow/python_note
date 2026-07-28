@@ -1,0 +1,176 @@
+    <div style="background:#dafbe1;border:1px solid #b4e0b4;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#1a7f37;">
+        <strong>  ️ 实习生：</strong>陈少辉 &nbsp;·&nbsp; <strong>日期：</strong>2026-07-28 &nbsp;·&nbsp; <strong>方向：</strong>Python
+    </div>
+
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span>  第1次周报</span><span class="badge">8题</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 1（第21题）：列表切片与排序</div>
+        </div>
+        <div class="qa-item"><div class="q">❌ 题目代码</div><div class="a"><pre>original = [72, 88, 65]
+copied = original[:]
+copied.sort()
+copied.append(90)
+print(original)
+print(copied)</pre></div></div>
+        <div class="qa-item"><div class="q">✅ 正确输出</div><div class="a"><pre>[72, 88, 65]
+[65, 72, 88, 90]</pre></div></div>
+        <div class="qa-item"><div class="q">  原因分析</div><div class="a">1. <code>copied = original[:]</code> 通过切片浅拷贝，copied 与 original 是两个独立列表<br>2. <code>copied.sort()</code> 原地排序只改 copied，不影响 original<br>3. <code>copied.append(90)</code> 追加 90，copied 最终为 [65, 72, 88, 90]<br>4. original 自始至终未被修改，保持 [72, 88, 65]</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 2（第22题）：循环体内的缩进层级</div>
+        </div>
+        <div class="qa-item"><div class="q">❌ 错误代码</div><div class="a"><pre>scores = [65, 90, 82]
+passed = []
+for score in scores:
+    if score >= 60:
+        passed.append(score)
+        print(passed)   # 缩进在 if 内部
+# 输出：[65] [65, 90] [65, 90, 82]（打印3次）</pre></div></div>
+        <div class="qa-item"><div class="q">  错误原因</div><div class="a">print(passed) 缩进在 if 内部，每判断一个及格成绩就打印一次，共 3 次。</div></div>
+        <div class="qa-item"><div class="q">✅ 修正</div><div class="a"><pre>for score in scores:
+    if score >= 60:
+        passed.append(score)
+print(passed)   # 与 if 对齐，循环结束后执行一次
+# 输出：[65, 90, 82]</pre></div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 3（第23题）：字典嵌套修改与 get() 默认值</div>
+        </div>
+        <div class="qa-item"><div class="q">❌ 题目代码</div><div class="a"><pre>profile = {'name': '陈晨', 'scores': {'Python': 82}}
+profile['scores']['Python'] = 88
+profile['scores']['SQL'] = 75
+mentor = profile.get('mentor', '待分配')
+print(profile['scores'])
+print(mentor)</pre></div></div>
+        <div class="qa-item"><div class="q">✅ 正确输出</div><div class="a"><pre>{'Python': 88, 'SQL': 75}
+待分配</pre></div></div>
+        <div class="qa-item"><div class="q">  原因分析</div><div class="a">1. <code>profile['scores']['Python'] = 88</code> 键已存在 → 修改（82→88）<br>2. <code>profile['scores']['SQL'] = 75</code> 新增键值对<br>3. <code>profile.get('mentor', '待分配')</code> 键不存在 → 返回默认值，不报错</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 4（第24题）：while 循环中的 continue 与死循环</div>
+        </div>
+        <div class="qa-item"><div class="q">❌ 错误代码</div><div class="a"><pre>numbers = [1, 2, 3, 4]
+index = 0
+total = 0
+while index &lt; len(numbers):
+    if numbers[index] % 2 == 0:
+        continue       # 跳过 index += 1
+    total += numbers[index]
+    index += 1</pre></div></div>
+        <div class="qa-item"><div class="q">  错误原因</div><div class="a">遇到偶数时 continue 跳回 while 开头，index += 1 未执行，索引永远卡在偶数位置，形成死循环。</div></div>
+        <div class="qa-item"><div class="q">✅ 修正</div><div class="a"><pre>while index &lt; len(numbers):
+    if numbers[index] % 2 == 0:
+        index += 1     # 先自增再 continue
+        continue
+    total += numbers[index]
+    index += 1
+# 更简洁：
+while index &lt; len(numbers):
+    if numbers[index] % 2 != 0:
+        total += numbers[index]
+    index += 1
+print(total)  # 4</pre></div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 5（第25题）：清理成绩（函数实现）</div>
+        </div>
+        <div class="qa-item"><div class="q">  要求</div><div class="a">实现 clean_scores(scores)，筛选 0~100 有效成绩，降序返回新列表，不修改原列表。</div></div>
+        <div class="qa-item"><div class="q">  错误原因</div><div class="a">混淆 range(101) 与输入列表的遍历，return 写在循环内部导致提前结束。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>def clean_scores(scores):
+    valid = [s for s in scores if 0 <= s <= 100]
+    return sorted(valid, reverse=True)
+
+scores = [86, -1, 72, 105, 90]
+print(clean_scores(scores))   # [90, 86, 72]
+print(scores)                 # [86, -1, 72, 105, 90] 原列表不变</pre></div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">列表推导式过滤 + sorted() 返回新列表 + reverse=True 降序</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 6（第26题）：记录课程成绩（函数实现）</div>
+        </div>
+        <div class="qa-item"><div class="q">  要求</div><div class="a">实现 record_score(profile, course, score)，成绩 0~100 时更新/新增并返回 True，否则返回 False。</div></div>
+        <div class="qa-item"><div class="q">  错误原因</div><div class="a">误用 input() 获取输入，if 0 >= score <= 100 语法逻辑错误，字典嵌套修改方式不正确。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>def record_score(profile, course, score):
+    if 0 <= score <= 100:
+        profile['scores'][course] = score
+        return True
+    else:
+        return False
+
+profile = {'name': '陈晨', 'scores': {'Python': 82}}
+record_score(profile, 'SQL', 75)    # True，新增
+record_score(profile, 'Python', 88) # True，更新
+record_score(profile, 'Java', 105)  # False，不修改</pre></div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">函数参数直接传值不用 input()；字典赋值同时实现新增和更新；返回布尔值</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 7（第27题）：统计测试执行结果（函数实现）</div>
+        </div>
+        <div class="qa-item"><div class="q">  要求</div><div class="a">遍历结果列表，返回"结果名称—出现次数"字典，必须用 dict.get() 完成计数。</div></div>
+        <div class="qa-item"><div class="q">  错误原因</div><div class="a">未理解 dict.get() 在计数场景中的用法，代码语法混乱。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>def count_results(results):
+    counts = {}
+    for result in results:
+        counts[result] = counts.get(result, 0) + 1
+    return counts
+
+results = ['通过', '失败', '通过', '阻塞', '失败', '通过']
+print(count_results(results))
+# {'通过': 3, '失败': 2, '阻塞': 1}</pre></div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">counts.get(result, 0) + 1 是计数器经典写法，避免 if 判断分支</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 8（第28题）：生成培训成绩汇总（综合函数实现）</div>
+        </div>
+        <div class="qa-item"><div class="q">  要求</div><div class="a">实现 build_summary(records, pass_mark=60)，返回新字典，不修改 records。处理有效成绩、平均值、None 及状态。</div></div>
+        <div class="qa-item"><div class="q">  错误原因</div><div class="a">records.items 漏括号、sum 当列表用、未筛选有效成绩、未处理无成绩、直接修改原字典、未返回正确结构。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>def build_summary(records, pass_mark=60):
+    summary = {}
+    for name, scores in records.items():
+        valid_scores = [s for s in scores if 0 <= s <= 100]
+        if valid_scores:
+            average = sum(valid_scores) / len(valid_scores)
+            status = "通过" if average >= pass_mark else "需加强"
+        else:
+            average = None
+            status = "无有效成绩"
+        summary[name] = {
+            'valid_count': len(valid_scores),
+            'average': average,
+            'status': status
+        }
+    return summary
+
+records = {'陈晨': [80,90,100], '李杰': [50,58], '王敏': [], '赵宇': [101,80,-1,60]}
+print(build_summary(records))</pre></div></div>
+        <div class="qa-item"><div class="q">  期望输出</div><div class="a"><pre>{
+    '陈晨': {'valid_count': 3, 'average': 90.0, 'status': '通过'},
+    '李杰': {'valid_count': 2, 'average': 54.0, 'status': '需加强'},
+    '王敏': {'valid_count': 0, 'average': None, 'status': '无有效成绩'},
+    '赵宇': {'valid_count': 2, 'average': 70.0, 'status': '通过'}
+}</pre></div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">.items() 需括号；列表推导式过滤；分支处理有效/无效成绩；构建新字典不修改原数据</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;margin-top:10px;">
+          <div class="q" style="font-size:15px;">  本周学习总结</div>
+        </div>
+        <div class="qa-item"><div class="q">  薄弱点</div><div class="a">
+<strong>1. 函数定义：</strong>多道题（25~28）在参数接收、返回值、不修改原数据等方面出错，需加强"函数是独立黑盒"的思维。<br>
+<strong>2. 字典操作：</strong>嵌套字典读取与修改、get() 默认值用法需熟练。<br>
+<strong>3. 循环控制：</strong>continue 会跳过剩余代码，索引自增等关键语句必须放对位置。<br>
+<strong>4. 代码规范：</strong>缩进层级决定代码块归属；方法调用（如 .items()）不能漏写括号。
+        </div></div>
+        <div class="qa-item"><div class="q">  下周计划</div><div class="a">
+- 继续学习《Python编程从入门到实践》后续章节<br>
+- 重点练习函数封装与字典综合操作<br>
+- 把本周错题重新手写一遍，加深印象
+        </div></div>
+
+      </div>
+    </div>

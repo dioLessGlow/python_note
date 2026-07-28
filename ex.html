@@ -1,0 +1,240 @@
+    <div style="background:#dafbe1;border:1px solid #b4e0b4;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#1a7f37;">
+        <strong>  ️ 练习题：</strong>点击可直接浏览
+    </div>
+
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span> 基础数据类型练习题</span><span class="badge">✅ 有答案</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body open">
+        <div class="qa-item">
+          <div class="q">题目文件</div>
+          <div class="a"><a href="练习题/基础数据类型练习题.html" target="_blank">📄 基础数据类型练习题</a></div>
+        </div>
+        <div class="qa-item" style="background:#f0f8f0;border-top:2px solid #1a7f37;border-radius:0 0 6px 6px;">
+          <div class="q" style="font-size:15px;color:#1a7f37;">📖 知识点总结</div>
+          <div class="a">
+            <p><strong>一、字符串 vs 列表 —— 核心区别</strong></p>
+            <pre>         字符串 (str)                列表 (list)
+         ─────────────               ──────────
+ "hello"                         ['h','e','l','l','o']
+ 不可变（修改创建新对象）          可变（可直接修改）
+ 每个元素是字符                   每个元素可以是任意类型
+ ' '.join(列表)  列表→字符串     字符串.split(' ')  字符串→列表</pre>
+
+            <pre># 不可变 vs 可变
+s = "hello"
+s[0] = 'H'          # ❌ TypeError: 字符串不可变
+
+lst = ['h','e','l','l','o']
+lst[0] = 'H'        # ✅ 列表可直接修改
+
+# 字符串方法返回新对象（原串不变）
+s = "hello"
+s.upper()           # "HELLO"（新字符串）
+print(s)            # "hello"（原串不变）</pre>
+
+            <p><strong>二、<code>join</code> vs <code>+</code> —— 何时用哪个</strong></p>
+
+            <p><strong><code>+</code>：少量拼接，直观</strong></p>
+            <pre># ✅ 少量字符串
+a = "Na"
+b = a * 4 + " Batman!"   # "NaNaNaNa Batman!"
+
+# ✅ 少数变量拼接
+full = first + " " + last
+
+# ❌ 循环中用 + 拼接大量字符串（效率低！）
+result = ""
+for s in big_list:          # 每次循环创建新字符串
+    result += s             # O(n²) 时间复杂度</pre>
+
+            <p><strong><code>join</code>：列表→字符串，大量拼接</strong></p>
+            <pre># ✅ 列表转字符串（推荐）
+words = ["Python", "is", "powerful"]
+print(' '.join(words))        # "Python is powerful"
+
+# ✅ 循环中收集到列表，最后 join（高效！）
+parts = []
+for s in big_list:
+    parts.append(s)
+result = ''.join(parts)        # O(n) 一次拼接
+
+# ✅ join + 推导式（最简洁）
+result = ''.join(s for s in big_list if s)</pre>
+
+            <p><strong>对比总结：</strong></p>
+            <pre>操作                    用 join                    用 +
+──────────────────────────────────────────────────
+列表→字符串              ✅ 'sep'.join(list)        ❌ 不行
+少量字符串拼接            ❌ 没必要                 ✅ a + b
+循环中大量拼接            ✅ join(列表)             ❌ += 效率低
+数字→字符串拼接           ❌ 需先转str              ✅ str(n) + "元"
+混合类型                  ❌ 需全转str              ✅ str(x) + str(y)</pre>
+
+            <p><strong>三、<code>join</code> 和 <code>split</code> 搭配</strong></p>
+            <pre># 核心模式：split 切分 → 处理 → join 重组
+
+# 1. 基础
+s = "apple;banana;cherry;date"
+parts = s.split(';')              # ['apple','banana','cherry','date']
+result = ', '.join(parts)         # "apple, banana, cherry, date"
+
+# 2. 过滤
+s = "Temperature: -5.67°C, Humidity: 82.3%"
+digits = ''.join(c for c in s if c.isdigit() or c in '.-')
+# "-5.6782.3"
+
+# 3. 替换分隔符
+s = "a|b|c|d"
+result = ','.join(s.split('|'))   # "a,b,c,d"
+
+# 4. 按空格分割再重组
+s = "The  quick   brown fox"
+result = ' '.join(s.split())      # "The quick brown fox"（合并多余空格）</pre>
+
+            <p><strong>四、常用方法速查</strong></p>
+            <pre>字符串方法                       列表方法
+────────                     ────────
+s.split(';')  → 列表         ','.join(lst)  → 字符串
+s.strip()     → 去两端空白    lst.append(x)  → 添加
+s.replace()   → 替换         lst.sort()     → 排序
+s.upper()     → 大写         lst.pop()      → 弹出
+s.lower()     → 小写         lst.reverse()  → 反转
+s.count('a')  → 统计         lst.index(x)   → 查找索引
+s.find('a')   → 查找位置     lst.remove(x)  → 删除
+s.startswith()               lst.insert()   → 插入
+s.isalpha()   → 是否字母     lst.extend()   → 扩展
+s.isdigit()   → 是否数字     len(lst)       → 长度
+s[::-1]       → 反转         lst[1:9:2]     → 切片（同字符串）
+a[1:9:2]      → 切片
+len(s)        → 长度</pre>
+
+            <p><strong>五、数字类型</strong></p>
+            <pre>int('FA', 16)    # 十六进制→十进制: 250
+bin(1024)        # 十进制→二进制: '0b10000000000'
+math.ceil(3.14)  # 向上取整: 4
+math.floor(3.14) # 向下取整: 3
+round(3.14159,2) # 四舍五入: 3.14
+abs(-25)         # 绝对值: 25
+.is_integer()    # 判断是否为整数: 4.000 → True
+f"{a:.2e}"       # 科学计数法: 4.56e-05
+
+# 精度陷阱
+0.1 + 0.2 - 0.3  # 5.55e-17 ≠ 0
+# 比较浮点用容差: a < 0.0001</pre>
+
+            <p><strong>六、格式化输出</strong></p>
+            <pre>f"{h:02d}:{m:02d}:{s:02d}"  # 补零: "01:00:05"
+f"{a:.2e}"                    # 科学计数法
+f"{a:>8.2f}"                  # 右对齐宽度8，保留2位小数
+f"{a:<.2f}"                   # 左对齐
+str(a)+'，'+str(b)            # f-string更简洁: f"{a}，{b}"</pre>
+
+            <p><strong>七、条件与循环技巧</strong></p>
+            <pre># for-else: 没break才执行else
+for i in range(2, num):
+    if num % i == 0:
+        print('no')
+        break
+else:
+    print('y')       # 质数判断
+
+# 列表推导式统计
+sum_a = sum(1 for c in a if c == 'a')
+
+# 末尾零计数
+count = 0
+for c in reversed(str(result)):
+    if c == "0": count += 1
+    else: break
+
+# 生日隐藏
+c = a.replace(b, "********")  # "110101********1234"</pre>
+
+            <p><strong>八、常用内置函数</strong></p>
+            <pre>sum()      # 求和
+max()/min() # 最大/最小
+abs()      # 绝对值
+int()/float()/str()/list()  # 类型转换
+len()      # 长度
+range()    # 范围
+reversed() # 反转迭代器
+any()/all() # 任一/全部为真
+bin()/hex() # 转二进制/十六进制
+math.gcd()  # 最大公约数
+math.modf() # 拆分整数和小数
+uniform()   # 随机浮点数</pre>
+
+            <p><strong>九、运算符优先级</strong></p>
+            <pre>** 幂运算 → 最高
+* / // % → 乘除取整取余
++ -      → 加减
+    例: 15 // 4 + 20 % 6 * 2 - 3 ** 2
+       = 3 + (20%6=2)*2 - 9
+       = 3 + 4 - 9 = -2</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span> 列表练习题</span><span class="badge">❌ 暂无答案</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="qa-item">
+          <div class="q">题目文件</div>
+          <div class="a"><a href="练习题/列表练习题.html" target="_blank">📄 列表练习题</a></div>
+        </div>
+        <div class="qa-item">
+          <div class="q">状态</div>
+          <div class="a">暂无答案文件</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span> 字典练习题</span><span class="badge">✅ 有答案</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="qa-item">
+          <div class="q">题目文件</div>
+          <div class="a"><a href="练习题/字典练习题.html" target="_blank">📄 字典练习题</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span> Class练习题</span><span class="badge">✅ 有答案</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="qa-item">
+          <div class="q">题目文件</div>
+          <div class="a"><a href="练习题/Class练习题.html" target="_blank">📄 Class练习题</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span> Python 语句、函数练习题</span><span class="badge">❌ 暂无答案</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="qa-item">
+          <div class="q">题目文件</div>
+          <div class="a"><a href="练习题/Python+语句、函数练习题.html" target="_blank">📄 Python+语句、函数练习题</a></div>
+        </div>
+        <div class="qa-item">
+          <div class="q">状态</div>
+          <div class="a">暂无答案文件</div>
+        </div>
+      </div>
+    </div>
