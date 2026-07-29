@@ -1,110 +1,280 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8">
-<title>Python+语句、函数练习题.docx</title>
+<title>Python+语句、函数练习题</title>
 <style>
 body{font-family:-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:20px;line-height:1.8;background:#f0f4f0;color:#1f2328;}
 h1{color:#1a7f37;border-bottom:2px solid #1a7f37;padding-bottom:8px;}
+h2{color:#1a7f37;margin-top:30px;}
 pre{background:#fff;border:1px solid #d0d7de;border-radius:6px;padding:12px 16px;overflow-x:auto;font-size:14px;line-height:1.6;}
 code{background:#edf4ed;padding:2px 5px;border-radius:3px;color:#1a7f37;}
-</style></head><body>
+.answer{background:#f6faf6;border:1px solid #b4e0b4;border-radius:8px;padding:12px 16px;margin:10px 0;}
+.answer summary{cursor:pointer;color:#1a7f37;font-weight:600;}
+.correct{color:#1a7f37;font-weight:600;}
+p{margin:8px 0;}
+</style></head>
+<body>
 <h1>Python+语句、函数练习题</h1>
-<p>Python 语句、函数练习题</p>
-<h1>一、选择题</h1>
-<p>1. 以下代码的输出结果是什么？</p>
-<pre>for i in range(5):</pre>
-<pre>    if i == 3:</pre>
-<p>        break</p>
-<pre>    print(i, end=&#x27; &#x27;)</pre>
-<pre>else:</pre>
-<pre>    print(&#x27;Done&#x27;)</pre>
-<p>A) 0 1 2 Done</p>
-<p>B) 0 1 2 3 4 Done</p>
-<p>C) 0 1 2</p>
-<p>D) 0 1 2 3 4</p>
-<p>2. 关于函数参数，以下调用方式正确的是？</p>
-<pre>def func(a, b=10, *args, c, d=20, **kwargs):</pre>
-<p>    pass</p>
+
+<h2>一、选择题</h2>
+
+<p><strong>1.</strong> 以下代码的输出结果是什么？</p>
+<pre>for i in range(5):
+    if i == 3:
+        break
+    print(i, end=' ')
+else:
+    print('Done')</pre>
+<p>A) 0 1 2 Done&emsp;B) 0 1 2 3 4 Done&emsp;C) 0 1 2&emsp;D) 0 1 2 3 4</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ C) 0 1 2</span></p><pre># i=3 时 break 跳出循环，else 不执行
+for i in range(5):
+    if i == 3:
+        break
+    print(i, end=' ')  # 0 1 2
+# ⚠️ else 只在循环没有被 break 时执行</pre></details>
+
+<p><strong>2.</strong> 关于函数参数，以下调用方式正确的是？</p>
+<pre>def func(a, b=10, *args, c, d=20, **kwargs):
+    pass</pre>
 <p>A) func(1, 2, 3, 4, c=5, d=6, e=7)</p>
 <p>B) func(1, b=2, 3, c=4)</p>
 <p>C) func(a=1, 2, c=3)</p>
 <p>D) func(1, c=2, d=3, 4)</p>
-<p>3. 以下关于生成器函数的说法，错误的是？</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ A) func(1, 2, 3, 4, c=5, d=6, e=7)</span></p><pre># 参数顺序: 位置参数 → 默认参数 → *args → 仅关键字参数 → **kwargs
+# A: a=1, b=2, args=(3,4), c=5, d=6, kwargs={'e':7}  ✅
+# B: ❌ 关键字参数 b=2 后面不能有位置参数 3
+# C: ❌ 关键字参数 a=1 后面不能有位置参数 2
+# D: ❌ 关键字参数 c=2 后面不能有位置参数 4</pre></details>
+
+<p><strong>3.</strong> 以下关于生成器函数的说法，错误的是？</p>
 <p>A) 包含 yield 的函数调用时返回生成器对象</p>
 <p>B) 生成器可以使用 next() 逐个获取值</p>
 <p>C) 生成器函数执行到 return 后会继续从头执行</p>
 <p>D) 生成器表达式使用圆括号 () 定义</p>
-<p>4. 以下代码的输出结果是什么？</p>
-<p>x = 10</p>
-<pre>def outer():</pre>
-<p>    x = 20</p>
-<pre>    def inner():</pre>
-<p>        nonlocal x</p>
-<p>        x = 30</p>
-<p>    inner()</p>
-<pre>    print(x)</pre>
-<p>outer()</p>
-<pre>print(x)</pre>
-<p>A) 20 10</p>
-<p>B) 30 10</p>
-<p>C) 30 30</p>
-<p>D) 20 30</p>
-<p>5. 以下代码中，&#x27;Finally&#x27; 会打印几次？</p>
-<pre>for i in [1, 2, 3]:</pre>
-<pre>    try:</pre>
-<pre>        if i == 2:</pre>
-<p>            continue</p>
-<pre>        print(i)</pre>
-<pre>    finally:</pre>
-<pre>        print(&#x27;Finally&#x27;)</pre>
-<p>A) 1次</p>
-<p>B) 2次</p>
-<p>C) 3次</p>
-<p>D) 0次</p>
-<p>6. 以下关于列表推导式和生成器表达式的说法，正确的是？</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ C) 生成器函数执行到 return 后会继续从头执行</span></p><pre># A ✅ 包含 yield 的函数 → 调用时返回生成器对象
+# B ✅ next() 手动迭代
+# C ❌ return 会引发 StopIteration，不会从头执行
+# D ✅ 生成器表达式: (x for x in range(10))</pre></details>
+
+<p><strong>4.</strong> 以下代码的输出结果是什么？</p>
+<pre>x = 10
+def outer():
+    x = 20
+    def inner():
+        nonlocal x
+        x = 30
+    inner()
+    print(x)
+outer()
+print(x)</pre>
+<p>A) 20 10&emsp;B) 30 10&emsp;C) 30 30&emsp;D) 20 30</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ B) 30 10</span></p><pre># nonlocal x → 修改 outer 作用域中的 x (20→30)
+# outer 内 print(x) → 30
+# 全局 x 不变 → 10
+# 输出: 30 10</pre></details>
+
+<p><strong>5.</strong> 以下代码中，'Finally' 会打印几次？</p>
+<pre>for i in [1, 2, 3]:
+    try:
+        if i == 2:
+            continue
+        print(i)
+    finally:
+        print('Finally')</pre>
+<p>A) 1次&emsp;B) 2次&emsp;C) 3次&emsp;D) 0次</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ C) 3次</span></p><pre># finally 在每次循环都会执行（包括 continue/break 时）
+# i=1: print(1), finally → "1 Finally"
+# i=2: continue, finally → "Finally"
+# i=3: print(3), finally → "3 Finally"
+# 共打印 3 次 "Finally"</pre></details>
+
+<p><strong>6.</strong> 以下关于列表推导式和生成器表达式的说法，正确的是？</p>
 <p>A) [x for x in range(1000000)] 和 (x for x in range(1000000)) 都立即占用大量内存</p>
 <p>B) 列表推导式比等价的 for 循环更慢</p>
 <p>C) sum(x for x in range(100)) 等价于 sum([x for x in range(100)]) 但前者更省内存</p>
 <p>D) 生成器表达式只能用于 for 循环</p>
-<h1>二、填空题</h1>
-<p>1. 表达式 {k: v for k, v in [(&#x27;a&#x27;, 1), (&#x27;b&#x27;, 2), (&#x27;a&#x27;, 3)]} 的结果是________</p>
-<p>2. 函数定义中，**kwargs 用于接收________形式的关键字参数</p>
-<p>3. 以下代码的输出：</p>
-<p>x = 100</p>
-<pre>def foo():</pre>
-<p>    global x</p>
-<p>    x = 200</p>
-<pre>    def bar():</pre>
-<pre>        print(x)</pre>
-<p>    bar()</p>
-<p>foo()</p>
-<pre>print(x)</pre>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ C) 前者更省内存</span></p><pre># A ❌ 生成器表达式惰性求值，不占大量内存
+# B ❌ 列表推导式通常比 for 循环 append 更快（C 层面优化）
+# C ✅ 生成器逐个产生值，省内存；列表推导式先建完整列表
+# D ❌ 生成器可用于 next()、any()、sum() 等各种场景</pre></details>
+
+<h2>二、填空题</h2>
+
+<p><strong>1.</strong> 表达式 <code>{k: v for k, v in [('a', 1), ('b', 2), ('a', 3)]}</code> 的结果是________</p>
+<details class="answer"><summary>查看答案</summary><pre># 字典推导式，键相同时后面的值覆盖前面的
+{'a': 3, 'b': 2}</pre></details>
+
+<p><strong>2.</strong> 函数定义中，**kwargs 用于接收________形式的关键字参数</p>
+<details class="answer"><summary>查看答案</summary><pre># **kwargs 用于接收"字典"形式的多余关键字参数
+def func(**kwargs):
+    print(kwargs)  # {'x': 1, 'y': 2}
+func(x=1, y=2)</pre></details>
+
+<p><strong>3.</strong> 以下代码的输出：</p>
+<pre>x = 100
+def foo():
+    global x
+    x = 200
+    def bar():
+        print(x)
+    bar()
+foo()
+print(x)</pre>
 <p>输出为________</p>
-<p>4. 在嵌套循环中，________语句可以立即跳过当前循环的剩余代码，直接进入下一次迭代</p>
-<p>5. 表达式 list(filter(lambda x: x % 2 == 0, range(10))) 的结果是________</p>
-<p>7. 以下代码的输出：</p>
-<pre>try:</pre>
-<pre>    print(&#x27;A&#x27;)</pre>
-<p>    raise ValueError(&#x27;err&#x27;)</p>
-<pre>except ValueError:</pre>
-<pre>    print(&#x27;B&#x27;)</pre>
-<pre>finally:</pre>
-<pre>    print(&#x27;C&#x27;)</pre>
-<pre>    print(&#x27;D&#x27;)</pre>
+<details class="answer"><summary>查看答案</summary><pre># global x → 修改全局变量 x (100→200)
+# bar() 打印全局 x → 200
+# 最后 print(x) → 200
+# 输出:
+200
+200</pre></details>
+
+<p><strong>4.</strong> 在嵌套循环中，________语句可以立即跳过当前循环的剩余代码，直接进入下一次迭代</p>
+<details class="answer"><summary>查看答案</summary><pre>continue</pre></details>
+
+<p><strong>5.</strong> 表达式 <code>list(filter(lambda x: x % 2 == 0, range(10)))</code> 的结果是________</p>
+<details class="answer"><summary>查看答案</summary><pre># filter 过滤出偶数
+[0, 2, 4, 6, 8]</pre></details>
+
+<p><strong>6.</strong> 以下代码的输出：</p>
+<pre>try:
+    print('A')
+    raise ValueError('err')
+except ValueError:
+    print('B')
+finally:
+    print('C')
+    print('D')</pre>
 <p>输出为________</p>
-<h1>三、判断题</h1>
-<p>1. 函数使用 return a, b 返回多个值时，实质上返回的是一个元组（    ）</p>
-<p>2. 普通函数（不含 yield）中也可以使用 yield 来返回生成器（    ）</p>
-<p>3. 默认参数在函数定义时求值一次，后续调用共享同一个对象（    ）</p>
-<p>4. 递归函数如果没有基线条件（终止条件），一定会导致栈溢出错误（    ）</p>
-<p>5. pass 语句可以在函数、类、if 语句等任何需要语法占位的地方使用（    ）</p>
-<p>6. else 可以与 for 循环配合使用，当循环没有被 break 中断时执行（    ）</p>
-<p>7. nonlocal 关键字可以修改嵌套函数中外部（非全局）作用域的变量（    ）</p>
-<p>8. 列表推导式 [x*2 for x in range(1000)] 的执行速度通常比等价的 for 循环 append 更快（    ）</p>
-<h1>四、编程题</h1>
-<p>1. 编写函数 is_prime(n)，判断一个大于1的整数 n 是否为素数。要求时间复杂度为 O(√n)，并返回布尔值。</p>
-<p>2. 编写递归函数 reverse_string(s)，将字符串 s 反转返回。例如 reverse_string(&#x27;hello&#x27;) 返回 &#x27;olleh&#x27;。要求不使用切片 [::-1] 和 reversed()。</p>
-<p>3. 编写函数 count_elements(lst)，接收一个列表，统计每个元素出现的次数，返回字典形式如 {&#x27;a&#x27;: 3, &#x27;b&#x27;: 2}。要求使用字典推导式或标准库实现。</p>
-<p>4. 实现快速排序函数 quick_sort(arr)，对输入列表进行升序排序。要求原地排序（in-place）或不原地均可，但需注明时间复杂度。</p>
-<p>5. 实现装饰器函数 call_counter，用于统计被装饰函数的调用次数。要求支持被装饰函数带有任意参数，并可通过 wrapper.call_count 属性获取次数。</p>
+<details class="answer"><summary>查看答案</summary><pre>A
+B
+C
+D</pre></details>
+
+<h2>三、判断题</h2>
+
+<p><strong>1.</strong> 函数使用 return a, b 返回多个值时，实质上返回的是一个元组（&emsp;&emsp;）</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ 正确</span></p><pre>def f():
+    return 1, 2
+print(type(f()))  # &lt;class 'tuple'&gt;</pre></details>
+
+<p><strong>2.</strong> 普通函数（不含 yield）中也可以使用 yield 来返回生成器（&emsp;&emsp;）</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">❌ 错误</span></p><pre># 包含 yield 的函数就是生成器函数，不含 yield 的函数不能使用 yield</pre></details>
+
+<p><strong>3.</strong> 默认参数在函数定义时求值一次，后续调用共享同一个对象（&emsp;&emsp;）</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ 正确</span></p><pre>def f(x, lst=[]):
+    lst.append(x)
+    return lst
+print(f(1))  # [1]
+print(f(2))  # [1, 2] ← 同一个列表对象</pre></details>
+
+<p><strong>4.</strong> 递归函数如果没有基线条件（终止条件），一定会导致栈溢出错误（&emsp;&emsp;）</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ 正确</span></p><pre># 无限递归 → 栈溢出（RecursionError）</pre></details>
+
+<p><strong>5.</strong> pass 语句可以在函数、类、if 语句等任何需要语法占位的地方使用（&emsp;&emsp;）</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ 正确</span></p><pre># pass 是空语句，用于语法占位</pre></details>
+
+<p><strong>6.</strong> else 可以与 for 循环配合使用，当循环没有被 break 中断时执行（&emsp;&emsp;）</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ 正确</span></p><pre>for i in range(3):
+    if i == 5:
+        break
+else:
+    print('没遇到 break 才执行')</pre></details>
+
+<p><strong>7.</strong> nonlocal 关键字可以修改嵌套函数中外部（非全局）作用域的变量（&emsp;&emsp;）</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ 正确</span></p><pre># nonlocal → 修改外层函数变量
+# global  → 修改全局变量</pre></details>
+
+<p><strong>8.</strong> 列表推导式 [x*2 for x in range(1000)] 的执行速度通常比等价的 for 循环 append 更快（&emsp;&emsp;）</p>
+<details class="answer"><summary>查看答案</summary><p><span class="correct">✅ 正确</span></p><pre># 列表推导式在 C 层面执行，比 Python 层 for+append 更快</pre></details>
+
+<h2>四、编程题</h2>
+
+<p><strong>1.</strong> 编写函数 is_prime(n)，判断一个大于1的整数 n 是否为素数。要求时间复杂度为 O(√n)，并返回布尔值。</p>
+<details class="answer"><summary>查看答案</summary><pre>def is_prime(n):
+    if n <= 1:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+print(is_prime(50))  # False
+print(is_prime(17))  # True</pre></details>
+
+<p><strong>2.</strong> 编写递归函数 reverse_string(s)，将字符串 s 反转返回。例如 reverse_string('hello') 返回 'olleh'。要求不使用切片 [::-1] 和 reversed()。</p>
+<details class="answer"><summary>查看答案</summary><pre>def reverse_string(s):
+    if len(s) <= 1:
+        return s
+    return s[-1] + reverse_string(s[:-1])
+
+print(reverse_string('hello'))  # 'olleh'
+
+# 递归过程:
+# reverse_string('hello')
+# → 'o' + reverse_string('hell')
+# → 'o' + 'l' + reverse_string('hel')
+# → 'o' + 'l' + 'l' + reverse_string('he')
+# → 'o' + 'l' + 'l' + 'e' + reverse_string('h')
+# → 'o' + 'l' + 'l' + 'e' + 'h'
+# → 'olleh'</pre></details>
+
+<p><strong>3.</strong> 编写函数 count_elements(lst)，接收一个列表，统计每个元素出现的次数，返回字典形式如 {'a': 3, 'b': 2}。要求使用字典推导式或标准库实现。</p>
+<details class="answer"><summary>查看答案</summary><pre># 方法1：字典推导式 + count
+def count_elements(lst):
+    return {x: lst.count(x) for x in set(lst)}
+
+# 方法2：字典 get 累加
+def count_elements2(lst):
+    new_dict = {}
+    for i in lst:
+        new_dict[i] = new_dict.get(i, 0) + 1
+    return new_dict
+
+# 方法3：标准库 collections.Counter
+from collections import Counter
+def count_elements3(lst):
+    return dict(Counter(lst))
+
+print(count_elements(['a','a','b']))  # {'b': 1, 'a': 2}</pre></details>
+
+<p><strong>4.</strong> 实现快速排序函数 quick_sort(arr)，对输入列表进行升序排序。要求原地排序（in-place）或不原地均可，但需注明时间复杂度。</p>
+<details class="answer"><summary>查看答案</summary><pre>def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left   = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right  = [x for x in arr if x > pivot]
+    return quick_sort(left) + middle + quick_sort(right)
+
+print(quick_sort([1,5,2,3,56,4,1,3,4,1,3]))
+# [1, 1, 1, 2, 3, 3, 3, 4, 4, 5, 56]
+
+# 复杂度:
+# 时间: 平均 O(n log n)，最坏 O(n²)（每次基准都选到最大/最小值）
+# 空间: O(n) — 每次递归都创建新列表</pre></details>
+
+<p><strong>5.</strong> 实现装饰器函数 call_counter，用于统计被装饰函数的调用次数。要求支持被装饰函数带有任意参数，并可通过 wrapper.call_count 属性获取次数。</p>
+<details class="answer"><summary>查看答案</summary><pre>from functools import wraps
+
+def call_counter(func):
+    """
+    装饰器：统计被装饰函数的调用次数
+    """
+    @wraps(func)  # 保留原函数的名称、文档等元信息
+    def wrapper(*args, **kwargs):
+        wrapper.call_count += 1  # 每次调用计数 +1
+        return func(*args, **kwargs)  # 透传任意参数
+
+    wrapper.call_count = 0  # 初始化计数器
+    return wrapper
+
+@call_counter
+def greet(name):
+    return f"Hello, {name}!"
+
+print(greet("Alice"))      # Hello, Alice!
+print(greet("Bob"))        # Hello, Bob!
+print(greet.call_count)    # 2</pre></details>
+
 </body></html>

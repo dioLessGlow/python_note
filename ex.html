@@ -277,6 +277,128 @@ any() / all()           # 任一/全部为真</pre>
 
     <div class="section">
       <div class="section-header" onclick="toggle(this)">
+        <h2><span> Python 语句、函数练习题</span><span class="badge">✅ 有答案</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="qa-item">
+          <div class="q">题目文件</div>
+          <div class="a"><a href="练习题/Python+语句、函数练习题.html" target="_blank">📄 Python+语句、函数练习题</a></div>
+        </div>
+        <div class="qa-item" style="background:#f0f8f0;border-top:2px solid #1a7f37;border-radius:0 0 6px 6px;">
+          <div class="q" style="font-size:15px;color:#1a7f37;">📖 知识点总结</div>
+          <div class="a">
+            <p><strong>一、for-else 与 break</strong></p>
+            <pre>for i in range(5):
+    if i == 3:
+        break          # break 时 else 不执行
+    print(i, end=' ')
+else:
+    print('Done')      # 没遇到 break 才执行 else
+# 输出: 0 1 2</pre>
+
+            <p><strong>二、函数参数（*args, **kwargs, 默认参数）</strong></p>
+            <pre>def func(a, b=10, *args, c, d=20, **kwargs):
+    pass
+
+# 位置参数 → 默认参数 → *args → 仅关键字参数 → **kwargs
+# func(1, 2, 3, 4, c=5, d=6, e=7)  ✅
+# func(1, b=2, 3, c=4)             ❌ 位置参数不能在关键字参数之后
+# func(a=1, 2, c=3)                ❌ 同上
+# func(1, c=2, d=3, 4)             ❌ 位置参数不能在关键字参数之后
+# ⚠️ 默认参数在函数定义时求值一次，后续调用共享同一个对象！</pre>
+
+            <p><strong>三、nonlocal vs global</strong></p>
+            <pre>x = 10              # 全局
+def outer():
+    x = 20          # 闭包变量
+    def inner():
+        nonlocal x  # 修改 outer 的 x
+        x = 30
+    inner()
+    print(x)        # 30
+outer()
+print(x)            # 10（全局不变）
+
+# nonlocal → 修改外层函数变量（非全局）
+# global  → 修改全局变量</pre>
+
+            <p><strong>四、try-finally 与 continue/break</strong></p>
+            <pre>for i in [1, 2, 3]:
+    try:
+        if i == 2:
+            continue   # continue/break 前也会执行 finally
+        print(i)
+    finally:
+        print('Finally')
+# 输出: 1 Finally Finally 3 Finally
+# finally 无论是否异常、是否 break/continue 都会执行</pre>
+
+            <p><strong>五、列表推导式 vs 生成器表达式</strong></p>
+            <pre>[x for x in range(1000000)]   # 立即占用大量内存
+(x for x in range(1000000))   # 生成器，惰性求值，几乎不占内存
+
+sum(x for x in range(100))    # ✅ 省内存（生成器）
+sum([x for x in range(100)])  # ❌ 先建列表再求和，浪费内存
+
+# 字典推导式
+{k: v for k, v in [('a',1),('b',2),('a',3)]}  # {'a':3, 'b':2}（后覆盖前）
+{k: lst.count(k) for k in set(lst)}            # 统计元素出现次数</pre>
+
+            <p><strong>六、编程题代码参考</strong></p>
+            <pre># 1. 素数判断（O(√n)）
+def is_prime(n):
+    if n <= 1:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+# 2. 递归反转字符串
+def reverse_string(s):
+    if len(s) <= 1:
+        return s
+    return s[-1] + reverse_string(s[:-1])
+
+# 3. 统计元素出现次数
+def count_elements(lst):
+    return {x: lst.count(x) for x in set(lst)}
+
+# 4. 快速排序（O(n log n) 平均 / O(n²) 最坏）
+def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left   = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right  = [x for x in arr if x > pivot]
+    return quick_sort(left) + middle + quick_sort(right)
+
+# 5. 装饰器统计调用次数
+from functools import wraps
+
+def call_counter(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.call_count += 1
+        return func(*args, **kwargs)
+    wrapper.call_count = 0
+    return wrapper
+
+@call_counter
+def greet(name):
+    return f"Hello, {name}!"
+
+print(greet("Alice"))      # Hello, Alice!
+print(greet.call_count)    # 1</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
         <h2><span> 字典练习题</span><span class="badge">✅ 有答案</span></h2>
         <span class="arrow">▼</span>
       </div>
@@ -284,6 +406,227 @@ any() / all()           # 任一/全部为真</pre>
         <div class="qa-item">
           <div class="q">题目文件</div>
           <div class="a"><a href="练习题/字典练习题.html" target="_blank">📄 字典练习题</a></div>
+        </div>
+        <div class="qa-item" style="background:#f0f8f0;border-top:2px solid #1a7f37;border-radius:0 0 6px 6px;">
+          <div class="q" style="font-size:15px;color:#1a7f37;">📖 知识点总结</div>
+          <div class="a">
+            <p><strong>一、fromkeys vs 字典推导式（⚠️ 共享引用陷阱）</strong></p>
+            <pre>a = ['a','b','c']
+
+# fromkeys：所有键共享同一个 [] 对象！
+b = dict.fromkeys(a, [])
+print(b)                     # {'a': [], 'b': [], 'c': []}
+print(b['a'] is b['b'])      # True ← 同一个列表！
+
+# 字典推导式：每个键独立创建新 []
+b = {k: [] for k in a}
+print(b)                     # {'a': [], 'b': [], 'c': []}
+print(b['a'] is b['b'])      # False ← 各自独立</pre>
+
+            <p><strong>二、get vs setdefault</strong></p>
+            <pre>prices = {'apple': 3.5, 'banana': None, 'cherry': 4.0}
+
+# get：取值，不存在返回默认值（不修改原字典）
+price = prices.get('banana')
+if price is None:
+    price = 0.0
+print(price)                 # 0.0
+
+# setdefault：键不存在时插入默认值并返回
+prices.setdefault('date', 5)  # 插入 date:5
+print(prices)                 # {'apple': 3.5, 'banana': None, 'cherry': 4.0, 'date': 5}</pre>
+
+            <p><strong>三、字典合并的三种方式</strong></p>
+            <pre>dict_a = {'x': 1, 'y': 2}
+dict_b = {'y': 3, 'z': 4}
+
+# 方法1：update（修改原字典）
+dict_c = dict_a.copy()
+dict_c.update(dict_b)         # 后者覆盖前者
+print(dict_c)                 # {'x': 1, 'y': 3, 'z': 4}
+
+# 方法2：** 解包（Python 3.5+）
+dict_c = {**dict_a, **dict_b}
+print(dict_c)                 # {'x': 1, 'y': 3, 'z': 4}
+
+# 方法3：| 运算符（Python 3.9+）
+dict_c = dict_a | dict_b
+print(dict_c)                 # {'x': 1, 'y': 3, 'z': 4}</pre>
+
+            <p><strong>四、查找最大值对应的键</strong></p>
+            <pre>scores = {'Alice': 88, 'Bob': 92, 'Charlie': 85, 'David': 92}
+
+max_val = max(scores.values())
+users = [k for k, v in scores.items() if v == max_val]
+users.sort()
+print(users)                  # ['Bob', 'David']
+
+# 更简洁：max(scores, key=scores.get)  → 但只返回第一个</pre>
+
+            <p><strong>五、键值交换（条件过滤）</strong></p>
+            <pre>old = {1: 'a', 2: 'b', 3: 'c', 4: 'xyz'}
+new = {v: k for k, v in old.items() if len(v) == 1}
+print(new)                    # {'a': 1, 'b': 2, 'c': 3}</pre>
+
+            <p><strong>六、filter 过滤字典值</strong></p>
+            <pre>inventory = {'pen': 10, 'pencil': 0, 'eraser': 5, 'ruler': None}
+total = sum(v for v in inventory.values() if v is not None and v >= 0)
+print(total)                  # 15</pre>
+
+            <p><strong>七、成员检查：in vs keys()</strong></p>
+            <pre>config = {'host': 'localhost', 'port': 8080}
+print('host' in config)       # True（等价于 in config.keys()）
+print('timeout' in config)    # False</pre>
+
+            <p><strong>八、字典推导式 + 函数式编程</strong></p>
+            <pre>from functools import reduce
+import operator
+
+# 1~10 的阶乘
+a = {k: reduce(operator.mul, range(1, k + 1), 1) for k in range(1, 11)}
+print(a)  # {1:1, 2:2, 3:6, 4:24, 5:120, ...}</pre>
+
+            <p><strong>九、类型检查（⚠️ bool 是 int 的子类）</strong></p>
+            <pre>mixed = {'id': 42, 'name': 'Test', 'score': 98.5, 'active': True, 'tags': [1,2,3]}
+
+# type(v) is int 会把 True 也算进去（bool 是 int 的子类）
+new_k = [k for k, v in mixed.items() if type(v) is int and type(v) is not bool]
+print(new_k)                  # ['id']</pre>
+
+            <p><strong>十、zip 两列表 → 字典 + 类型转换</strong></p>
+            <pre>keys = ['name', 'age', 'city']
+values = ['Alice', 25, 'Beijing']
+
+c = dict(zip(keys, values))            # {'name':'Alice', 'age':25, 'city':'Beijing'}
+for k, v in c.items():
+    if type(v) is not str:
+        c[k] = str(v)
+print(c)                               # 全部转 str</pre>
+
+            <p><strong>十一、按值排序 + 按键排序</strong></p>
+            <pre>grades = {'Math': 85, 'Science': 92, 'English': 78, 'History': 92}
+items = sorted(grades.items(), key=lambda x: (-x[1], x[0]))
+print(items)  # [('History',92), ('Science',92), ('Math',85), ('English',78)]
+# 先按值降序，值相同按键升序</pre>
+
+            <p><strong>十二、统计字符频率 + 取前3</strong></p>
+            <pre># 手动统计
+a = 'abracadabra'
+total = {}
+for i in a:
+    total[i] = total.get(i, 0) + 1
+items = sorted(total.items(), key=lambda x: (-x[1], x[0]))
+print(dict(items[:3]))        # {'a': 5, 'b': 2, 'r': 2}
+
+# 一行搞定（Counter）
+from collections import Counter
+new_dict = dict(Counter(a).most_common(3))
+print(new_dict)               # {'a': 5, 'b': 2, 'r': 2}</pre>
+
+            <p><strong>十三、嵌套字典的访问与修改</strong></p>
+            <pre>user = {'profile': {'name': 'Alice', 'contact': {'email': 'alice@example.com', 'phone': '12345'}}}
+
+# 修改深层值
+if user['profile']['contact']['phone'] is not None:
+    user['profile']['contact']['phone'] = '67890'
+
+# 添加深层键
+if user['profile']['contact'] is not None:
+    user['profile']['contact']['address'] = 'Beijing'
+
+print(user)
+# {'profile': {'name': 'Alice', 'contact': {'email': 'alice@example.com', 'phone': '67890', 'address': 'Beijing'}}}</pre>
+
+            <p><strong>十四、多字典合并（ChainMap vs update vs **）</strong></p>
+            <pre>from collections import ChainMap
+d1 = {'a': 1}
+d2 = {'b': 2}
+d3 = {'a': 3, 'c': 4}
+
+# ChainMap：按顺序查找，不修改原字典
+config = ChainMap(d3, d2, d1)
+print(dict(config))           # {'a': 3, 'b': 2, 'c': 4}
+
+# update：修改原字典
+d1.update(d2)
+d1.update(d3)
+print(d1)                     # {'a': 3, 'b': 2, 'c': 4}
+
+# ** 解包合并
+d4 = {**d1, **d2, **d3}
+print(d4)                     # {'a': 3, 'b': 2, 'c': 4}</pre>
+
+            <p><strong>十五、遍历时删除的正确做法</strong></p>
+            <pre>words = {'hello': 5, 'world': 5, 'python': 6, 'code': 4}
+
+# ❌ 遍历时直接删除会报错：RuntimeError: dictionary changed size during iteration
+# ✅ 先收集要删的键，再删除
+to_del = [k for k, v in words.items() if v < 5]
+for i in to_del:
+    del words[i]
+print(words)                  # {'hello': 5, 'world': 5, 'python': 6}</pre>
+
+            <p><strong>十六、递归处理嵌套字典</strong></p>
+            <pre>def deep_upper(obj):
+    for k, v in obj.items():
+        if type(v) is str:
+            obj[k] = v.upper()
+        elif type(v) is list:
+            for key, value in enumerate(v):
+                if type(value) is str:
+                    v[key] = value.upper()
+                elif type(value) is dict:
+                    deep_upper(value)
+        elif type(v) is dict:
+            deep_upper(v)
+    return obj
+
+data = {
+    'name': 'alice',
+    'tags': ['python', {'label': 'coding'}, 'java'],
+    'info': {'city': 'beijing', 'hobbies': [{'sport': 'basketball'}, 'reading']}
+}
+print(deep_upper(data))
+# 所有字符串递归转大写</pre>
+
+            <p><strong>十七、== vs is（值相等 vs 同一对象）</strong></p>
+            <pre>d = {'a': [1,2], 'b': [1,2]}
+print(d['a'] == d['b'])       # True  （值相等）
+print(d['a'] is d['b'])       # False （不同对象）
+d['a'].append(3)
+print(d['b'])                 # [1,2] ← 互不影响</pre>
+
+            <p><strong>十八、列表[(k,v),...] 分组为字典</strong></p>
+            <pre>a = [('a',1), ('b',2), ('a',3), ('c',4), ('b',5)]
+
+# 手动
+new_dict = {}
+for k, v in a:
+    if k not in new_dict:
+        new_dict[k] = []
+    new_dict[k].append(v)
+print(new_dict)               # {'a': [1,3], 'b': [2,5], 'c': [4]}
+
+# defaultdict（更简洁）
+from collections import defaultdict
+grouped = defaultdict(list)
+for key, value in a:
+    grouped[key].append(value)
+print(dict(grouped))          # {'a': [1,3], 'b': [2,5], 'c': [4]}</pre>
+
+            <p><strong>十九、递归深拷贝（支持 dict/list/tuple/set）</strong></p>
+            <pre>def deep_copy_dict(obj):
+    if type(obj) is dict:
+        return {k: deep_copy_dict(v) for k, v in obj.items()}
+    elif type(obj) is list:
+        return [deep_copy_dict(item) for item in obj]
+    elif type(obj) is tuple:
+        return tuple(deep_copy_dict(item) for item in obj)
+    elif type(obj) is set:
+        return {deep_copy_dict(item) for item in obj}
+    else:
+        return obj</pre>
+          </div>
         </div>
       </div>
     </div>
@@ -301,16 +644,4 @@ any() / all()           # 任一/全部为真</pre>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-header" onclick="toggle(this)">
-        <h2><span> Python 语句、函数练习题</span></h2>
-        <span class="arrow">▼</span>
-      </div>
-      <div class="section-body">
-        <div class="qa-item">
-          <div class="q">题目文件</div>
-          <div class="a"><a href="练习题/Python+语句、函数练习题.html" target="_blank">📄 Python+语句、函数练习题</a></div>
-        </div>
-      </div>
-    </div>
   </div>

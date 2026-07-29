@@ -5,28 +5,283 @@
 <style>
 body{font-family:-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:20px;line-height:1.8;background:#f0f4f0;color:#1f2328;}
 h1{color:#1a7f37;border-bottom:2px solid #1a7f37;padding-bottom:8px;}
+h2{color:#1a7f37;margin-top:30px;}
 pre{background:#fff;border:1px solid #d0d7de;border-radius:6px;padding:12px 16px;overflow-x:auto;font-size:14px;line-height:1.6;}
-</style></head><body>
+code{background:#edf4ed;padding:2px 5px;border-radius:3px;color:#1a7f37;}
+.answer{background:#f6faf6;border:1px solid #b4e0b4;border-radius:8px;padding:12px 16px;margin:10px 0;}
+.answer summary{cursor:pointer;color:#1a7f37;font-weight:600;}
+p{margin:8px 0;}
+</style></head>
+<body>
 <h1>字典练习题</h1>
-<p>字典练习题</p>
-<p>1. 使用 fromkeys() 创建一个字典，键为 [&#x27;a&#x27;,&#x27;b&#x27;,&#x27;c&#x27;]，默认值为空列表 []。观察三个键对应的值是否为同一个列表对象（可用 id() 或 is 验证），并解释原因。写出正确的初始化方式，使每个键拥有独立的空列表。</p>
-<p>2. 给定字典 prices = {&#x27;apple&#x27;: 3.5, &#x27;banana&#x27;: None, &#x27;cherry&#x27;: 4.0}，使用 get() 获取 &#x27;banana&#x27; 的价格，若值为 None 则返回 0.0；同时使用 setdefault() 为不存在的键 &#x27;date&#x27; 设置默认值 5.0 并获取。</p>
-<p>3. 合并两个字典 dict_a = {&#x27;x&#x27;: 1, &#x27;y&#x27;: 2} 和 dict_b = {&#x27;y&#x27;: 3, &#x27;z&#x27;: 4}，要求保留 dict_b 的值覆盖 dict_a。分别使用 update() 方法、| 运算符（Python 3.9+）和 {**dict_a, **dict_b} 解包三种方式实现。</p>
-<p>4. 从字典 scores = {&#x27;Alice&#x27;: 88, &#x27;Bob&#x27;: 92, &#x27;Charlie&#x27;: 85, &#x27;David&#x27;: 92} 中找出所有获得最高分的姓名，并按字母顺序排序后输出为列表。</p>
-<p>5. 将字典 old = {1: &#x27;a&#x27;, 2: &#x27;b&#x27;, 3: &#x27;c&#x27;, 4: &#x27;xyz&#x27;} 的键值对过滤后交换，只保留值为单个小写字母的项，生成新字典 {&#x27;a&#x27;: 1, &#x27;b&#x27;: 2, &#x27;c&#x27;: 3}。</p>
-<p>6. 计算字典 inventory = {&#x27;pen&#x27;: 10, &#x27;pencil&#x27;: 0, &#x27;eraser&#x27;: 5, &#x27;ruler&#x27;: None} 中所有有效库存（值不为 None 且不为负数）的总和。</p>
-<p>7. 检查字典 config = {&#x27;host&#x27;: &#x27;localhost&#x27;, &#x27;port&#x27;: 8080} 中是否同时存在键 &#x27;host&#x27; 和 &#x27;timeout&#x27;。分别说明使用 &#x27;host&#x27; in config 和 &#x27;host&#x27; in config.keys() 的区别（从时间复杂度和返回值类型角度）。</p>
-<p>8. 使用字典推导式生成一个字典，键为 1 到 10 的整数，值为该数的阶乘（如 {1:1, 2:2, 3:6, ...}），要求不使用 math.factorial，用推导式内部嵌套循环实现。</p>
-<p>9. 给定字典 mixed = {&#x27;id&#x27;: 42, &#x27;name&#x27;: &#x27;Test&#x27;, &#x27;score&#x27;: 98.5, &#x27;active&#x27;: True, &#x27;tags&#x27;: [1,2,3]}，提取所有值为整数类型（int）但不包括布尔类型（bool）的键。</p>
-<p>10. 将两个等长列表 keys = [&#x27;name&#x27;, &#x27;age&#x27;, &#x27;city&#x27;] 和 values = [&#x27;Alice&#x27;, 25, &#x27;Beijing&#x27;] 组合成字典，并确保字典中所有值都是字符串类型（非字符串需通过 str() 转换）。</p>
-<p>11. 按值对字典 grades = {&#x27;Math&#x27;: 85, &#x27;Science&#x27;: 92, &#x27;English&#x27;: 78, &#x27;History&#x27;: 92} 降序排序；值相同时，按键的字母顺序升序排列。输出为 [(&#x27;History&#x27;, 92), (&#x27;Science&#x27;, 92), (&#x27;Math&#x27;, 85), (&#x27;English&#x27;, 78)] 形式的列表。</p>
-<p>12. 使用 collections.Counter 统计字符串 &#x27;abracadabra&#x27; 中每个字符出现次数，找出出现频率最高的前 3 个字符及其次数，并将结果转为普通字典。</p>
-<p>13. 将嵌套字典 user = {&#x27;profile&#x27;: {&#x27;name&#x27;: &#x27;Alice&#x27;, &#x27;contact&#x27;: {&#x27;email&#x27;: &#x27;alice@example.com&#x27;, &#x27;phone&#x27;: &#x27;12345&#x27;}}} 中的 &#x27;phone&#x27; 值改为 &#x27;67890&#x27;，并给 &#x27;contact&#x27; 新增 &#x27;address&#x27;: &#x27;Beijing&#x27;。要求先安全判断每层键是否存在，避免 KeyError。</p>
-<p>14. 合并三个字典 d1 = {&#x27;a&#x27;: 1}, d2 = {&#x27;b&#x27;: 2}, d3 = {&#x27;a&#x27;: 3, &#x27;c&#x27;: 4}，要求后面的字典覆盖前面的。分别使用 collections.ChainMap 和 {**d1, **d2, **d3} 实现，并解释两种方式在键查找和结果类型上的区别。</p>
-<p>15. 统计字典 words = {&#x27;hello&#x27;: 5, &#x27;world&#x27;: 5, &#x27;python&#x27;: 6, &#x27;code&#x27;: 4} 中值为偶数的键值对数量，并原地删除所有值小于 5 的键值对（注意遍历时直接删除的陷阱，写出正确做法）。</p>
-<p>16. 将字典 data = {&#x27;x&#x27;: 10, &#x27;y&#x27;: 20, &#x27;z&#x27;: 30} 先转换为按值升序排列的元组列表，再将其转回有序字典。说明 Python 3.7+ 中普通 dict 为何能保持插入顺序。</p>
-<p>17. 实现一个递归函数 deep_upper(obj)，将多层嵌套字典中的所有字符串值转换为大写（如 {&#x27;a&#x27;: {&#x27;b&#x27;: &#x27;hello&#x27;}} → {&#x27;a&#x27;: {&#x27;b&#x27;: &#x27;HELLO&#x27;}}）；若值是列表，列表内的字典也需递归处理。</p>
-<p>18. 给定字典 d = {&#x27;a&#x27;: [1,2], &#x27;b&#x27;: [1,2]}，判断 d[&#x27;a&#x27;] == d[&#x27;b&#x27;] 和 d[&#x27;a&#x27;] is d[&#x27;b&#x27;] 的结果。随后执行 d[&#x27;a&#x27;].append(3)，再次打印 d[&#x27;b&#x27;] 并观察是否变化，用文字解释原因。</p>
-<p>19. 使用 collections.defaultdict(list) 将列表 [(&#x27;a&#x27;, 1), (&#x27;b&#x27;, 2), (&#x27;a&#x27;, 3), (&#x27;c&#x27;, 4), (&#x27;b&#x27;, 5)] 分组为 {&#x27;a&#x27;: [1, 3], &#x27;b&#x27;: [2, 5], &#x27;c&#x27;: [4]}，并说明 defaultdict 与普通 dict 在访问缺失键时的行为差异。</p>
-<p>20. 实现一个不使用 copy 模块的 deep_copy_dict 函数，能够递归处理嵌套字典、列表和基本数据类型（int, str, bool 等）的深拷贝。用包含嵌套字典和列表的复杂结构验证：修改副本不影响原对象。</p>
+
+<p><strong>1.</strong> 使用 fromkeys() 创建一个字典，键为 ['a','b','c']，默认值为空列表 []。观察三个键对应的值是否为同一个列表对象（可用 id() 或 is 验证），并解释原因。写出正确的初始化方式，使每个键拥有独立的空列表。</p>
+<details class="answer"><summary>查看答案</summary><pre># fromkeys：所有键共享同一个可变对象
+a = ['a','b','c']
+b = dict.fromkeys(a, [])
+print(b)                     # {'a': [], 'b': [], 'c': []}
+print(b['a'] is b['b'])      # True ← 是同一个列表！
+b['a'].append(1)
+print(b)                     # {'a': [1], 'b': [1], 'c': [1]}
+
+# ✅ 正确做法：字典推导式，每个键独立创建 []
+b = {k: [] for k in a}
+print(b['a'] is b['b'])      # False ← 各自独立</pre></details>
+
+<p><strong>2.</strong> 给定字典 prices = {'apple': 3.5, 'banana': None, 'cherry': 4.0}，使用 get() 获取 'banana' 的价格，若值为 None 则返回 0.0；同时使用 setdefault() 为不存在的键 'date' 设置默认值 5.0 并获取。</p>
+<details class="answer"><summary>查看答案</summary><pre>prices = {'apple': 3.5, 'banana': None, 'cherry': 4.0}
+
+# get()：取值，不存在返回默认值（不修改原字典）
+price = prices.get('banana')
+if price is None:
+    price = 0.0
+print(price)                 # 0.0
+
+# setdefault()：键不存在时插入默认值并返回
+prices.setdefault('date', 5)
+print(prices)                # {'apple': 3.5, 'banana': None, 'cherry': 4.0, 'date': 5}</pre></details>
+
+<p><strong>3.</strong> 合并两个字典 dict_a = {'x': 1, 'y': 2} 和 dict_b = {'y': 3, 'z': 4}，要求保留 dict_b 的值覆盖 dict_a。分别使用 update() 方法、| 运算符（Python 3.9+）和 {**dict_a, **dict_b} 解包三种方式实现。</p>
+<details class="answer"><summary>查看答案</summary><pre>dict_a = {'x': 1, 'y': 2}
+dict_b = {'y': 3, 'z': 4}
+
+# 1. update（修改原字典）
+dict_c = dict_a.copy()
+dict_c.update(dict_b)
+print(dict_c)                # {'x': 1, 'y': 3, 'z': 4}
+
+# 2. | 运算符（Python 3.9+）
+dict_c = dict_a | dict_b
+print(dict_c)                # {'x': 1, 'y': 3, 'z': 4}
+
+# 3. ** 解包
+dict_c = {**dict_a, **dict_b}
+print(dict_c)                # {'x': 1, 'y': 3, 'z': 4}</pre></details>
+
+<p><strong>4.</strong> 从字典 scores = {'Alice': 88, 'Bob': 92, 'Charlie': 85, 'David': 92} 中找出所有获得最高分的姓名，并按字母顺序排序后输出为列表。</p>
+<details class="answer"><summary>查看答案</summary><pre>scores = {'Alice': 88, 'Bob': 92, 'Charlie': 85, 'David': 92}
+
+max_val = max(scores.values())
+users = [k for k, v in scores.items() if v == max_val]
+users.sort()
+print(users)                 # ['Bob', 'David']
+
+# 一行：max 只返回一个
+# print(max(scores, key=scores.get))  # 'Bob'（第一个遇到的最大值）</pre></details>
+
+<p><strong>5.</strong> 将字典 old = {1: 'a', 2: 'b', 3: 'c', 4: 'xyz'} 的键值对过滤后交换，只保留值为单个小写字母的项，生成新字典 {'a': 1, 'b': 2, 'c': 3}。</p>
+<details class="answer"><summary>查看答案</summary><pre>old = {1: 'a', 2: 'b', 3: 'c', 4: 'xyz'}
+new = {v: k for k, v in old.items() if len(v) == 1}
+print(new)                   # {'a': 1, 'b': 2, 'c': 3}</pre></details>
+
+<p><strong>6.</strong> 计算字典 inventory = {'pen': 10, 'pencil': 0, 'eraser': 5, 'ruler': None} 中所有有效库存（值不为 None 且不为负数）的总和。</p>
+<details class="answer"><summary>查看答案</summary><pre>inventory = {'pen': 10, 'pencil': 0, 'eraser': 5, 'ruler': None}
+total = sum(v for v in inventory.values() if v is not None and v >= 0)
+print(total)                 # 15</pre></details>
+
+<p><strong>7.</strong> 检查字典 config = {'host': 'localhost', 'port': 8080} 中是否同时存在键 'host' 和 'timeout'。分别说明使用 'host' in config 和 'host' in config.keys() 的区别（从时间复杂度和返回值类型角度）。</p>
+<details class="answer"><summary>查看答案</summary><pre>config = {'host': 'localhost', 'port': 8080}
+
+bool_config = 'host' in config and 'timeout' in config
+print(bool_config)           # False
+
+# 'host' in config        → O(1) 哈希查找，等价于 dict.__contains__
+# 'host' in config.keys() → 同上（Python 3 中 .keys() 返回视图，也是 O(1)）
+# Python 2 中 .keys() 返回列表，是 O(n)</pre></details>
+
+<p><strong>8.</strong> 使用字典推导式生成一个字典，键为 1 到 10 的整数，值为该数的阶乘（如 {1:1, 2:2, 3:6, ...}），要求不使用 math.factorial，用推导式内部嵌套循环实现。</p>
+<details class="answer"><summary>查看答案</summary><pre>from functools import reduce
+import operator
+
+# 方法1：推导式 + reduce
+a = {k: reduce(operator.mul, range(1, k + 1), 1) for k in range(1, 11)}
+print(a)
+# {1:1, 2:2, 3:6, 4:24, 5:120, 6:720, 7:5040, 8:40320, 9:362880, 10:3628800}
+
+# 方法2：嵌套循环
+result = {}
+for k in range(1, 11):
+    fact = 1
+    for i in range(1, k + 1):
+        fact *= i
+    result[k] = fact
+print(result)</pre></details>
+
+<p><strong>9.</strong> 给定字典 mixed = {'id': 42, 'name': 'Test', 'score': 98.5, 'active': True, 'tags': [1,2,3]}，提取所有值为整数类型（int）但不包括布尔类型（bool）的键。</p>
+<details class="answer"><summary>查看答案</summary><pre>mixed = {'id': 42, 'name': 'Test', 'score': 98.5, 'active': True, 'tags': [1,2,3]}
+
+# ⚠️ bool 是 int 的子类，type(v) is int 会把 True 也算进去
+new_k = [k for k, v in mixed.items() if type(v) is int and type(v) is not bool]
+print(new_k)                 # ['id']</pre></details>
+
+<p><strong>10.</strong> 将两个等长列表 keys = ['name', 'age', 'city'] 和 values = ['Alice', 25, 'Beijing'] 组合成字典，并确保字典中所有值都是字符串类型（非字符串需通过 str() 转换）。</p>
+<details class="answer"><summary>查看答案</summary><pre>keys = ['name', 'age', 'city']
+values = ['Alice', 25, 'Beijing']
+
+c = dict(zip(keys, values))
+print(c)                     # {'name': 'Alice', 'age': 25, 'city': 'Beijing'}
+
+for k, v in c.items():
+    if type(v) is not str:
+        c[k] = str(v)
+print(c)                     # {'name': 'Alice', 'age': '25', 'city': 'Beijing'}</pre></details>
+
+<p><strong>11.</strong> 按值对字典 grades = {'Math': 85, 'Science': 92, 'English': 78, 'History': 92} 降序排序；值相同时，按键的字母顺序升序排列。输出为 [('History', 92), ('Science', 92), ('Math', 85), ('English', 78)] 形式的列表。</p>
+<details class="answer"><summary>查看答案</summary><pre>grades = {'Math': 85, 'Science': 92, 'English': 78, 'History': 92}
+
+items = sorted(grades.items(), key=lambda x: (-x[1], x[0]))
+print(items)
+# [('History', 92), ('Science', 92), ('Math', 85), ('English', 78)]</pre></details>
+
+<p><strong>12.</strong> 使用 collections.Counter 统计字符串 'abracadabra' 中每个字符出现次数，找出出现频率最高的前 3 个字符及其次数，并将结果转为普通字典。</p>
+<details class="answer"><summary>查看答案</summary><pre>from collections import Counter
+
+# 手动
+a = 'abracadabra'
+total = {}
+for i in a:
+    total[i] = total.get(i, 0) + 1
+items = sorted(total.items(), key=lambda x: (-x[1], x[0]))
+print(dict(items[:3]))       # {'a': 5, 'b': 2, 'r': 2}
+
+# Counter 一行搞定
+new_dict = dict(Counter(a).most_common(3))
+print(new_dict)              # {'a': 5, 'b': 2, 'r': 2}</pre></details>
+
+<p><strong>13.</strong> 将嵌套字典 user = {'profile': {'name': 'Alice', 'contact': {'email': 'alice@example.com', 'phone': '12345'}}} 中的 'phone' 值改为 '67890'，并给 'contact' 新增 'address': 'Beijing'。要求先安全判断每层键是否存在，避免 KeyError。</p>
+<details class="answer"><summary>查看答案</summary><pre>user = {'profile': {'name': 'Alice', 'contact': {'email': 'alice@example.com', 'phone': '12345'}}}
+
+# 安全判断后修改
+if 'profile' in user and 'contact' in user['profile']:
+    contact = user['profile']['contact']
+    if 'phone' in contact and contact['phone'] is not None:
+        contact['phone'] = '67890'
+    if contact is not None:
+        contact['address'] = 'Beijing'
+
+print(user)
+# {'profile': {'name': 'Alice', 'contact': {'email': 'alice@example.com', 'phone': '67890', 'address': 'Beijing'}}}</pre></details>
+
+<p><strong>14.</strong> 合并三个字典 d1 = {'a': 1}, d2 = {'b': 2}, d3 = {'a': 3, 'c': 4}，要求后面的字典覆盖前面的。分别使用 collections.ChainMap 和 {**d1, **d2, **d3} 实现，并解释两种方式在键查找和结果类型上的区别。</p>
+<details class="answer"><summary>查看答案</summary><pre>from collections import ChainMap
+d1 = {'a': 1}
+d2 = {'b': 2}
+d3 = {'a': 3, 'c': 4}
+
+# ChainMap：按顺序查找，不修改原字典，查找时返回第一个匹配的键
+config = ChainMap(d3, d2, d1)
+print(dict(config))          # {'a': 3, 'b': 2, 'c': 4}
+print(config['a'])           # 3 ← 从 d3 找到就返回，不继续查 d1
+
+# ** 解包：生成新字典，后面的覆盖前面的
+d4 = {**d1, **d2, **d3}
+print(d4)                    # {'a': 3, 'b': 2, 'c': 4}
+
+# 区别：
+# ChainMap：视图，修改原字典会影响查找结果；查找按顺序
+# ** 解包：新字典，与原字典独立</pre></details>
+
+<p><strong>15.</strong> 统计字典 words = {'hello': 5, 'world': 5, 'python': 6, 'code': 4} 中值为偶数的键值对数量，并原地删除所有值小于 5 的键值对（注意遍历时直接删除的陷阱，写出正确做法）。</p>
+<details class="answer"><summary>查看答案</summary><pre>words = {'hello': 5, 'world': 5, 'python': 6, 'code': 4}
+
+# 统计值为偶数的数量
+total = sum(1 for v in words.values() if v % 2 == 0)
+print(total)                 # 2
+
+# ❌ 遍历时直接删除 → RuntimeError: dictionary changed size during iteration
+# ✅ 先收集要删的键，再删除
+to_del = [k for k, v in words.items() if v < 5]
+for k in to_del:
+    del words[k]
+print(words)                 # {'hello': 5, 'world': 5, 'python': 6}</pre></details>
+
+<p><strong>16.</strong> 将字典 data = {'x': 10, 'y': 20, 'z': 30} 先转换为按值升序排列的元组列表，再将其转回有序字典。说明 Python 3.7+ 中普通 dict 为何能保持插入顺序。</p>
+<details class="answer"><summary>查看答案</summary><pre>data = {'x': 10, 'y': 20, 'z': 30}
+
+# 按值排序 → 转回 dict
+new_data = dict(sorted(data.items(), key=lambda x: (x[1], x[0])))
+print(new_data)              # {'x': 10, 'y': 20, 'z': 30}
+
+# Python 3.7+ dict 保持插入顺序（语言规范，不是实现细节）
+# 排序后的 (k,v) 按新顺序插入，dict 就保持了该顺序</pre></details>
+
+<p><strong>17.</strong> 实现一个递归函数 deep_upper(obj)，将多层嵌套字典中的所有字符串值转换为大写（如 {'a': {'b': 'hello'}} → {'a': {'b': 'HELLO'}}）；若值是列表，列表内的字典也需递归处理。</p>
+<details class="answer"><summary>查看答案</summary><pre>def deep_upper(obj):
+    for k, v in obj.items():
+        if type(v) is str:
+            obj[k] = v.upper()
+        elif type(v) is list:
+            for key, value in enumerate(v):
+                if type(value) is str:
+                    v[key] = value.upper()
+                elif type(value) is dict:
+                    deep_upper(value)
+        elif type(v) is dict:
+            deep_upper(v)
+    return obj
+
+data = {
+    'name': 'alice',
+    'tags': ['python', {'label': 'coding'}, 'java'],
+    'info': {'city': 'beijing', 'hobbies': [{'sport': 'basketball'}, 'reading']}
+}
+print(deep_upper(data))
+# 所有字符串递归转大写</pre></details>
+
+<p><strong>18.</strong> 给定字典 d = {'a': [1,2], 'b': [1,2]}，判断 d['a'] == d['b'] 和 d['a'] is d['b'] 的结果。随后执行 d['a'].append(3)，再次打印 d['b'] 并观察是否变化，用文字解释原因。</p>
+<details class="answer"><summary>查看答案</summary><pre>d = {'a': [1,2], 'b': [1,2]}
+print(d['a'] == d['b'])       # True  （值相等：内容相同）
+print(d['a'] is d['b'])       # False （不同对象：id 不同）
+
+d['a'].append(3)
+print(d['b'])                 # [1,2] ← 不受影响
+# 因为 d['a'] 和 d['b'] 是独立列表，各自有一份 [1,2]
+# 对比 fromkeys 的共享引用陷阱（问题1）</pre></details>
+
+<p><strong>19.</strong> 使用 collections.defaultdict(list) 将列表 [('a', 1), ('b', 2), ('a', 3), ('c', 4), ('b', 5)] 分组为 {'a': [1, 3], 'b': [2, 5], 'c': [4]}，并说明 defaultdict 与普通 dict 在访问缺失键时的行为差异。</p>
+<details class="answer"><summary>查看答案</summary><pre>from collections import defaultdict
+
+a = [('a', 1), ('b', 2), ('a', 3), ('c', 4), ('b', 5)]
+
+# defaultdict：缺失键时自动调用 list() 生成空列表
+grouped = defaultdict(list)
+for key, value in a:
+    grouped[key].append(value)
+print(dict(grouped))         # {'a': [1, 3], 'b': [2, 5], 'c': [4]}
+
+# 普通 dict 访问缺失键 → KeyError
+# defaultdict 访问缺失键 → 自动插入默认值并返回
+
+# 手动实现（不用 defaultdict）
+new_dict = {}
+for k, v in a:
+    if k not in new_dict:
+        new_dict[k] = []
+    new_dict[k].append(v)
+print(new_dict)              # 同上</pre></details>
+
+<p><strong>20.</strong> 实现一个不使用 copy 模块的 deep_copy_dict 函数，能够递归处理嵌套字典、列表和基本数据类型（int, str, bool 等）的深拷贝。用包含嵌套字典和列表的复杂结构验证：修改副本不影响原对象。</p>
+<details class="answer"><summary>查看答案</summary><pre>def deep_copy_dict(obj):
+    if type(obj) is dict:
+        return {k: deep_copy_dict(v) for k, v in obj.items()}
+    elif type(obj) is list:
+        return [deep_copy_dict(item) for item in obj]
+    elif type(obj) is tuple:
+        return tuple(deep_copy_dict(item) for item in obj)
+    elif type(obj) is set:
+        return {deep_copy_dict(item) for item in obj}
+    else:
+        return obj
+
+# 验证
+original = {'a': [1, 2, {'b': 3}], 'c': {'d': [4, 5]}}
+copied = deep_copy_dict(original)
+
+copied['a'].append(99)
+copied['a'][2]['b'] = 999
+
+print(original)  # {'a': [1, 2, {'b': 3}], 'c': {'d': [4, 5]}}
+print(copied)    # {'a': [1, 2, {'b': 999}, 99], 'c': {'d': [4, 5]}}
+# 修改副本不影响原对象 ✅</pre></details>
+
 </body></html>
