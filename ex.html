@@ -641,6 +641,178 @@ print(dict(grouped))          # {'a': [1,3], 'b': [2,5], 'c': [4]}</pre>
           <div class="q">题目文件</div>
           <div class="a"><a href="练习题/Class练习题.html" target="_blank">📄 Class练习题</a></div>
         </div>
+        <div class="qa-item" style="background:#f0f8f0;border-top:2px solid #1a7f37;border-radius:0 0 6px 6px;">
+          <div class="q" style="font-size:15px;color:#1a7f37;">📖 知识点总结</div>
+          <div class="a">
+            <p><strong>一、类属性 vs 实例属性</strong></p>
+            <pre># 类属性：所有实例共享，修改影响所有实例
+class BankAccount:
+    bank_name = "Python Bank"    # 类属性
+    interest_rate = 0.015        # 类属性
+
+# 实例属性：每个实例独立
+    def __init__(self, owner, balance=0):
+        self.owner = owner        # 实例属性
+        self._balance = balance   # 实例属性
+
+# 修改类属性 → 所有实例受影响
+BankAccount.interest_rate = 0.02  # ✅
+# 修改实例属性 → 只影响该实例
+account1.interest_rate = 0.03    # ❌ 创建了新实例属性，遮蔽类属性</pre>
+
+            <p><strong>二、self vs __init__</strong></p>
+            <pre># self：当前实例的引用
+# __init__：构造方法，创建实例时自动调用
+
+class Dog:
+    def __init__(self, name):
+        self.name = name      # self.属性 = 参数
+
+    def bark(self):
+        print(f"{self.name} 叫")  # 使用 self.方法()
+
+dog = Dog("旺财")
+dog.bark()</pre>
+
+            <p><strong>三、@property (getter/setter)</strong></p>
+            <pre># 私有属性：用单下划线 _ 或双下划线 __ 前缀
+self._balance   # 受保护（约定）
+self.__pin      # 私有（名称重整 _类名__属性）
+
+# @property：将方法转为属性（只读）
+class BankAccount:
+    def __init__(self):
+        self._balance = 0
+
+    @property
+    def balance(self):
+        return self._balance
+
+# @setter：控制属性赋值
+    @balance.setter
+    def balance(self, value):
+        if value < 0:
+            self._balance = 0
+        else:
+            self._balance = value
+
+account.balance = -100  # 自动调用 setter
+print(account.balance)   # 自动调用 getter → 0</pre>
+
+            <p><strong>四、继承与 super()</strong></p>
+            <pre># 继承：子类获得父类所有属性和方法
+class SavingsAccount(BankAccount):
+    pass
+
+# super()：调用父类方法
+class SavingsAccount(BankAccount):
+    def __init__(self, owner, balance, interest_rate):
+        super().__init__(owner, balance)  # 调用父类 __init__
+        self.interest_rate = interest_rate
+
+    def deposit(self, amount):
+        super().deposit(amount)  # 调用父类方法
+        # 子类自定义逻辑</pre>
+
+            <p><strong>五、@staticmethod（静态方法）</strong></p>
+            <pre># 不需要 self 或 cls，相当于普通函数
+# 通常用于工具函数、与类逻辑相关的辅助功能
+
+class BankAccount:
+    @staticmethod
+    def validate_account_number(num):
+        return isinstance(num, str) and len(num) == 10 and num.isdigit()
+
+# 调用：不需要实例
+BankAccount.validate_account_number("1234567890")</pre>
+
+            <p><strong>六、@classmethod（类方法）</strong></p>
+            <pre># 第一个参数是类本身(cls)，用于创建实例、替代构造函数
+
+class BankAccount:
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data['owner'], data.get('balance', 0))
+
+# 调用：不需要实例，直接用类名
+account = BankAccount.from_dict({'owner': 'Alice', 'balance': 1000})</pre>
+
+            <p><strong>七、私有属性与名称重整</strong></p>
+            <pre># 单下划线 _：受保护，约定不直接访问
+self._balance
+
+# 双下划线 __：私有，触发名称重整(name mangling)
+self.__pin  # 实际存储为 _BankAccount__pin
+
+# 提供 getter/setter 访问
+@property
+def pin(self):
+    return self.__pin
+
+@pin.setter
+def pin(self, value):
+    if len(value) != 6:
+        raise ValueError("PIN 必须是6位")
+    self.__pin = value</pre>
+
+            <p><strong>八、魔术方法汇总</strong></p>
+            <pre># 字符串表示
+__str__(self)   # print(obj) → 用户友好
+__repr__(self)  # repr(obj) → 开发者友好，eval(repr(obj)) 可重建
+
+# 比较运算
+__eq__(self, other)    # ==
+__lt__(self, other)    # <
+__le__(self, other)    # <=
+__gt__(self, other)    # >
+__ge__(self, other)    # >=
+
+# 算术运算
+__add__(self, other)   # +
+__sub__(self, other)   # -
+__mul__(self, other)   # *
+
+# 容器相关
+__len__(self)          # len(obj)
+__getitem__(self, key) # obj[key]
+__setitem__(self, key, value)  # obj[key] = value
+__call__(self, ...)    # obj() 可调用
+
+# 上下文管理
+__enter__(self)       # with obj as x:
+__exit__(self, ...)   # 退出with块</pre>
+
+            <p><strong>九、抽象基类 (abc)</strong></p>
+            <pre>from abc import ABC, abstractmethod
+
+class PaymentMethod(ABC):
+    @abstractmethod
+    def pay(self, amount):
+        pass
+
+    @abstractmethod
+    def refund(self, amount):
+        pass
+
+# 子类必须实现所有抽象方法，否则无法实例化
+class CreditCard(PaymentMethod):
+    def pay(self, amount):
+        print(f"支付 {amount}")
+
+# p = PaymentMethod()  # ❌ TypeError: 抽象类不能实例化</pre>
+
+            <p><strong>十、类属性计数</strong></p>
+            <pre>class Transaction:
+    _count = 0  # 类属性，所有实例共享
+
+    def __init__(self, ...):
+        Transaction._count += 1  # 每次创建实例计数+1
+
+    @classmethod
+    def get_count(cls):
+        return cls._count</pre>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -37,6 +37,7 @@
     transition: all 0.2s;
     user-select: none;
     border-right: 1px solid #c8d6c8;
+    white-space: nowrap;
   }
   .tab:last-child { border-right: none; }
   .tab:hover { background: #c8dac8; }
@@ -193,7 +194,8 @@
   }
   @media (max-width: 600px) {
     body { padding: 10px; font-size: 16px; }
-    .tab { font-size: 13px; padding: 10px 6px; }
+    .tabs { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+    .tab { font-size: 9px; padding: 10px 2px; white-space: nowrap; flex-shrink: 0; }
     .section-header { padding: 10px 14px; }
     .section-header h2 { font-size: 14px; }
     .qa-item { padding: 8px 14px; }
@@ -218,6 +220,9 @@
     <div class="tab" onclick="switchTab(2)">  知识图谱</div>
     <div class="tab" onclick="switchTab(3)">  练习题</div>
     <div class="tab" onclick="switchTab(4)">  周考</div>
+    <div class="tab" onclick="switchTab(5)">  常见陷阱</div>
+    <div class="tab" onclick="switchTab(6)">  知识大全</div>
+    <div class="tab" onclick="switchTab(7)">  数据转换</div>
   </div>
 
   <!-- TAB 1 -->
@@ -236,6 +241,15 @@
 
   <!-- TAB 5: 周考 -->
   <div class="tab-content" id="tab5"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
+
+  <!-- TAB 6: 常见陷阱 -->
+  <div class="tab-content" id="tab6"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
+
+  <!-- TAB 7: 知识大全 -->
+  <div class="tab-content" id="tab7"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
+
+  <!-- TAB 8: 数据转换 -->
+  <div class="tab-content" id="tab8"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
 
   <div class="footer">
     《Python编程从入门到实践（第3版）》&nbsp;·&nbsp; Eric Matthes &copy; 2026
@@ -262,8 +276,8 @@
     }
   }
   // Load content from same directory
-  const files = ['qa.html', 'kb.html', 'ex.html', 'zk.html'];
-  const containers = [document.getElementById('tab1'), document.getElementById('tab2'), document.getElementById('tab4'), document.getElementById('tab5')];
+  const files = ['qa.html', 'kb.html', 'ex.html', 'zk.html', 'pitfalls.html', 'knowledge.html', 'convert.html'];
+  const containers = [document.getElementById('tab1'), document.getElementById('tab2'), document.getElementById('tab4'), document.getElementById('tab5'), document.getElementById('tab6'), document.getElementById('tab7'), document.getElementById('tab8')];
   files.forEach((url, i) => {
     fetch(url)
       .then(r => r.text())

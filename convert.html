@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Python 数据类型转换大全</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:900px;margin:0 auto;padding:25px;line-height:1.9;background:#fafafa;color:#24292e;font-size:17px;}
+h1{color:#0969da;border-bottom:3px solid #0969da;padding-bottom:12px;font-size:30px;}
+h2{color:#0969da;margin-top:35px;border-left:5px solid #0969da;padding-left:14px;font-size:22px;background:#fff;padding:10px 16px;border-radius:0 6px 6px 0;}
+h3{color:#1a7f37;margin-top:25px;font-size:19px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:15px;line-height:1.6;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+.toc{background:#fff;border:2px solid #0969da;border-radius:10px;padding:20px;margin-bottom:25px;}
+.toc a{color:#0969da;text-decoration:none;display:block;padding:5px 0;}
+@media(max-width:600px){body{padding:15px;}pre{font-size:14px;}}</style></head>
+<body>
+
+<h1>Python 数据类型转换大全</h1>
+
+<div class="toc">
+<h3>目录</h3>
+<a href="#str">一、字符串 str</a>
+<a href="#list">二、列表 list</a>
+<a href="#tuple">三、元组 tuple</a>
+<a href="#set">四、集合 set</a>
+<a href="#dict">五、字典 dict</a>
+<a href="#bytes">六、字节 bytes</a>
+<a href="#nested">七、嵌套结构</a>
+</div>
+
+<!-- 字符串 -->
+<h2 id="str">一、字符串 str</h2>
+
+<h3>str → list（列表）</h3>
+<pre>s = "hello"
+list(s)                     # ['h','e','l','l','o']，按字符拆分
+
+s = "a,b,c,d"
+s.split(',')                # ['a','b','c','d']，按分隔符拆分
+
+s = "a  b   c"
+s.split()                   # ['a','b','c']，按空格拆分（合并多余空格）</pre>
+
+<h3>str → tuple（元组）</h3>
+<pre>s = "hello"
+tuple(s)                    # ('h','e','l','l','o')
+
+s = "a,b,c"
+tuple(s.split(','))         # ('a','b','c')</pre>
+
+<h3>str → set（集合）</h3>
+<pre>s = "abca"
+set(s)                      # {'a','b','c'}，去重
+
+s = "a,b,c"
+set(s.split(','))           # {'a','b','c'}</pre>
+
+<h3>str → dict（字典）</h3>
+<pre>import json
+s = '{"name":"Tom","age":20}'
+json.loads(s)               # {'name':'Tom','age':20}
+
+s = "name=Tom&age=20"
+dict(item.split('=') for item in s.split('&'))
+# {'name':'Tom','age':'20'}
+
+s = "{'a':1,'b':2}"
+eval(s)                     # {'a':1,'b':2}，慎用</pre>
+
+<h3>str → bytes（字节）</h3>
+<pre>s = "你好"
+s.encode('utf-8')           # b'\xe4\xbd\xa0\xe5\xa5\xbd'</pre>
+
+<h3>str → str（字符串操作）</h3>
+<pre>s1 = "Hello"
+s2 = "World"
+s1 + " " + s2               # 'Hello World'，+ 拼接
+
+words = ["Hello", "World"]
+" ".join(words)            # 'Hello World'，join 拼接
+
+f"{name} is {age} years old"  # f-string 格式化
+"{} is {} years old".format(name, age)  # format 格式化
+
+s = "Hello World"
+s.replace("World", "Python")  # 'Hello Python'，替换
+
+s = "  hello  "
+s.strip()                   # 'hello'，去除两端空白
+
+s = "hello    world   python"
+" ".join(s.split())        # 'hello world python'，去除多余空格</pre>
+
+<!-- 列表 -->
+<h2 id="list">二、列表 list</h2>
+
+<h3>list → str（字符串）</h3>
+<pre>lst = ['a','b','c']
+''.join(lst)                # 'abc'
+'-'.join(lst)              # 'a-b-c'
+
+lst = [1,2,3]
+''.join(str(x) for x in lst)  # '123'</pre>
+
+<h3>list → tuple（元组）</h3>
+<pre>lst = [1,2,3]
+tuple(lst)                  # (1,2,3)</pre>
+
+<h3>list → set（集合）</h3>
+<pre>lst = [1,2,2,3,3]
+set(lst)                    # {1,2,3}，去重</pre>
+
+<h3>list → dict（字典）</h3>
+<pre># 两个列表转字典
+keys = ['a','b','c']
+values = [1,2,3]
+dict(zip(keys,values))     # {'a':1,'b':2,'c':3}
+
+# 列表元素为元组对
+pairs = [('a',1),('b',2)]
+dict(pairs)                # {'a':1,'b':2}
+
+# 列表转字典（相同值）
+lst = ['a','b','c']
+dict.fromkeys(lst, 0)      # {'a':0,'b':0,'c':0}</pre>
+
+<h3>list → bytes（字节）</h3>
+<pre>lst = [72, 101, 108, 108]
+bytes(lst)                 # b'Hello'</pre>
+
+<h3>list → list（列表操作）</h3>
+<pre># 1. 合并/拼接
+list1 = [1,2,3]
+list2 = [4,5,6]
+list1.extend(list2)         # [1,2,3,4,5,6]，原地合并
+list1 + list2               # [1,2,3,4,5,6]，返回新列表
+
+# 2. 重复
+[1,2] * 3                  # [1,2,1,2,1,2]
+
+# 3. 切片
+[1,2,3,4,5][1:4]          # [2,3,4]
+
+# 4. 推导式过滤/转换
+[x for x in [1,2,3,4] if x % 2 == 0]  # [2,4]，过滤
+[x*2 for x in [1,2,3]]      # [2,4,6]，转换
+
+# 5. 去重保持顺序
+lst = [1,2,2,3,1,4,3]
+list(dict.fromkeys(lst))    # [1,2,3,4]，Python 3.7+
+
+# 6. 交集
+[x for x in [1,2,3,4] if x in [2,4,6]]  # [2,4]
+
+# 7. 差集
+[x for x in [1,2,3,4] if x not in [2,4]]  # [1,3]
+
+# 8. 排序
+sorted([3,1,4,1,5], reverse=True)  # [5,4,3,1,1]</pre>
+
+<!-- 元组 -->
+<h2 id="tuple">三、元组 tuple</h2>
+
+<h3>tuple → str（字符串）</h3>
+<pre>t = ('a','b','c')
+''.join(t)                 # 'abc'
+
+t = (1,2,3)
+''.join(str(x) for x in t) # '123'</pre>
+
+<h3>tuple → list（列表）</h3>
+<pre>t = (1,2,3)
+list(t)                    # [1,2,3]</pre>
+
+<h3>tuple → set（集合）</h3>
+<pre>t = (1,2,2,3)
+set(t)                     # {1,2,3}</pre>
+
+<h3>tuple → dict（字典）</h3>
+<pre>t = (('a',1),('b',2))
+dict(t)                    # {'a':1,'b':2}
+
+keys = ('a','b')
+values = (1,2)
+dict(zip(keys,values))     # {'a':1,'b':2}</pre>
+
+<h3>tuple → bytes（字节）</h3>
+<pre>t = (72, 101, 108, 108)
+bytes(t)                   # b'Hello'</pre>
+
+<h3>tuple → tuple（元组操作）</h3>
+<pre># 1. 合并
+(1,2,3) + (4,5,6)         # (1,2,3,4,5,6)
+
+# 2. 重复
+(1,2) * 3                  # (1,2,1,2,1,2)
+
+# 3. 切片
+(1,2,3,4,5)[1:4]          # (2,3,4)
+
+# 4. 拆包
+a,b,c = (1,2,3)            # a=1, b=2, c=3
+first,*middle,last = (1,2,3,4,5)  # first=1, middle=[2,3,4], last=5</pre>
+
+<!-- 集合 -->
+<h2 id="set">四、集合 set</h2>
+
+<h3>set → str（字符串）</h3>
+<pre>s = {'a','b','c'}
+','.join(s)                # 'a,b,c'，无序</pre>
+
+<h3>set → list（列表）</h3>
+<pre>s = {1,2,3,3}
+list(s)                    # [1,2,3]，可能无序
+
+# 保持顺序
+list(dict.fromkeys(s))    # Python 3.7+</pre>
+
+<h3>set → tuple（元组）</h3>
+<pre>s = {1,2,3}
+tuple(s)                   # (1,2,3)</pre>
+
+<h3>set → dict（字典）</h3>
+<pre># 不能直接转，但可以配合
+s = {'a','b','c'}
+dict.fromkeys(s, 0)        # {'a':0,'b':0,'c':0}
+
+keys = {'a','b','c'}
+values = [1,2,3]
+dict(zip(keys,values))     # {'a':1,'b':2,'c':3}</pre>
+
+<h3>set → set（集合操作）</h3>
+<pre>a = {1,2,3,4}
+b = {3,4,5,6}
+
+a | b                       # {1,2,3,4,5,6}，并集
+a & b                       # {3,4}，交集
+a - b                       # {1,2}，差集
+a ^ b                       # {1,2,5,6}，对称差集
+
+a.issubset(b)               # 子集
+a.issuperset(b)             # 超集</pre>
+
+<!-- 字典 -->
+<h2 id="dict">五、字典 dict</h2>
+
+<h3>dict → str（字符串）</h3>
+<pre>import json
+d = {'name':'Tom','age':20}
+json.dumps(d)               # '{"name":"Tom","age":20}'
+
+'&'.join(f"{k}={v}" for k,v in d.items())
+# 'name=Tom&age=20'
+
+str(d)                      # "{'name':'Tom','age':20}"</pre>
+
+<h3>dict → list（列表）</h3>
+<pre>d = {'a':1,'b':2,'c':3}
+list(d.keys())             # ['a','b','c']
+list(d.values())           # [1,2,3]
+list(d.items())            # [('a',1),('b',2),('c',3)]</pre>
+
+<h3>dict → tuple（元组）</h3>
+<pre>d = {'a':1,'b':2}
+tuple(d.keys())            # ('a','b')
+tuple(d.values())          # (1,2)
+tuple(d.items())           # (('a',1),('b',2))</pre>
+
+<h3>dict → set（集合）</h3>
+<pre>d = {'a':1,'b':2,'c':3}
+set(d.keys())              # {'a','b','c'}
+set(d.values())            # {1,2,3}
+set(d.items())             # {('a',1),('b',2),('c',3)}</pre>
+
+<h3>dict → dict（字典操作）</h3>
+<pre># 1. 键值交换
+{v:k for k,v in {'a':1,'b':2}.items()}
+# {1:'a',2:'b'}，值必须不可变
+
+# 2. 过滤
+{k:v for k,v in {'a':1,'b':2,'c':3}.items() if v > 1}
+# {'b':2,'c':3}
+
+# 3. 值转换
+{k:v*2 for k,v in {'a':1,'b':2}.items()}
+# {'a':2,'b':4}
+
+# 4. 合并
+d1 = {'a':1,'b':2}
+d2 = {'b':3,'c':4}
+
+d1.update(d2)               # {'a':1,'b':3,'c':4}，原地
+{**d1,**d2}                # {'a':1,'b':3,'c':4}，Python 3.5+
+d1 | d2                    # {'a':1,'b':3,'c':4}，Python 3.9+
+
+# 5. ChainMap 合并多个字典
+from collections import ChainMap
+cm = ChainMap({'a':1}, {'b':2}, {'a':3})
+cm['a']                    # 1，返回第一个匹配
+
+# 6. 深度合并
+def deep_merge(d1,d2):
+    result = d1.copy()
+    for k,v in d2.items():
+        if k in result and isinstance(result[k],dict) and isinstance(v,dict):
+            result[k] = deep_merge(result[k],v)
+        else:
+            result[k] = v
+    return result
+
+deep_merge({'a':{'x':1}},{'a':{'y':2}})
+# {'a':{'x':1,'y':2}}</pre>
+
+<!-- 字节 -->
+<h2 id="bytes">六、字节 bytes</h2>
+
+<h3>bytes → str（字符串）</h3>
+<pre>b = b'Hello'
+b.decode('utf-8')           # 'Hello'</pre>
+
+<h3>bytes → list（列表）</h3>
+<pre>b = b'ABC'
+list(b)                     # [65, 66, 67]</pre>
+
+<h3>bytes → tuple（元组）</h3>
+<pre>b = b'ABC'
+tuple(b)                    # (65, 66, 67)</pre>
+
+<h3>bytes → dict（字典）</h3>
+<pre>import json
+b = b'{"name":"Tom"}'
+json.loads(b.decode('utf-8'))  # {'name':'Tom'}</pre>
+
+<h3>bytes → bytes（字节操作）</h3>
+<pre>b = b'Hello'
+
+# 拼接
+b + b'World'               # b'HelloWorld'
+
+# 切片
+b[1:4]                     # b'ell'
+
+# 解码
+b.decode('utf-8')          # 'Hello'</pre>
+
+<!-- 嵌套结构 -->
+<h2 id="nested">七、嵌套结构</h2>
+
+<h3>嵌套列表展平</h3>
+<pre>def flatten(lst):
+    result = []
+    for item in lst:
+        if isinstance(item,list):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+    return result
+
+flatten([1,[2,3],[[4,5],6]])  # [1,2,3,4,5,6]</pre>
+
+<h3>嵌套字典扁平化</h3>
+<pre>def flatten_dict(d,parent_key='',sep='_'):
+    items = []
+    for k,v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v,dict):
+            items.extend(flatten_dict(v,new_key,sep).items())
+        else:
+            items.append((new_key,v))
+    return dict(items)
+
+flatten_dict({'a':{'b':{'c':1}}})
+# {'a_b_c':1}</pre>
+
+<h3>列表转嵌套字典</h3>
+<pre>from functools import reduce
+def nested_set(d, keys, value):
+    for key in keys[:-1]:
+        d = d.setdefault(key, {})
+    d[keys[-1]] = value
+
+d = {}
+nested_set(d, ['a','b','c'], 1)  # {'a':{'b':{'c':1}}}</pre>
+
+<h3>两列表转字典 + 分组</h3>
+<pre>keys = ['a','a','b','b','b','c']
+values = [1,2,3,4,5,6]
+
+# zip（后者覆盖）
+dict(zip(keys,values))      # {'a':2,'b':5,'c':6}
+
+# 分组（保留所有值）
+from collections import defaultdict
+d = defaultdict(list)
+for k,v in zip(keys,values):
+    d[k].append(v)
+dict(d)                     # {'a':[1,2],'b':[3,4,5],'c':[6]}</pre>
+
+<h3>列表元素计数</h3>
+<pre>from collections import Counter
+lst = ['a','b','a','c','b','a']
+Counter(lst)                # Counter({'a':3,'b':2,'c':1})
+
+# 手动
+counts = {}
+for x in lst:
+    counts[x] = counts.get(x,0) + 1</pre>
+
+<h3>列表按键分组</h3>
+<pre>from collections import defaultdict
+data = [
+    {'dept':'IT','name':'Alice'},
+    {'dept':'HR','name':'Bob'},
+    {'dept':'IT','name':'Charlie'}
+]
+
+grouped = defaultdict(list)
+for item in data:
+    grouped[item['dept']].append(item['name'])
+
+dict(grouped)               # {'IT':['Alice','Charlie'],'HR':['Bob']}</pre>
+
+<!-- 快速查阅 -->
+<h2>快速查阅表</h2>
+<details>
+<summary>点击查看</summary>
+<pre>┌────────┬────────┬────────┬────────┬────────┬────────┬────────┐
+│  →     │  str   │  list  │ tuple  │  set  │  dict  │ bytes  │
+├────────┼────────┼────────┼────────┼────────┼────────┼────────┤
+│ str    │   -    │ split()│ tuple()│ set() │ json   │ encode │
+│ list   │ join() │   -    │ tuple()│ set() │ zip()  │ bytes()│
+│ tuple  │ join() │ list() │   -    │ set() │ dict() │ bytes()│
+│ set    │ join() │ list() │ tuple()│   -   │fromkeys│   -    │
+│ dict   │json    │ keys() │ keys() │ keys()│   -    │   -    │
+│ bytes  │decode()│ list() │ tuple()│  -    │ json   │   -    │
+└────────┴────────┴────────┴────────┴────────┴────────┴────────┘</pre>
+</details>
+
+</body></html>

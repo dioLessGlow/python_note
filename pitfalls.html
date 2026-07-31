@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Python 常见陷阱</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:850px;margin:0 auto;padding:25px;line-height:1.9;background:#fff8f8;color:#1f2328;font-size:17px;}
+h1{color:#cf222e;border-bottom:3px solid #cf222e;padding-bottom:10px;font-size:30px;}
+h2{color:#cf222e;margin-top:35px;border-left:5px solid #cf222e;padding-left:14px;font-size:22px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:15px;line-height:1.5;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+code{background:#f5f5f5;color:#c7254e;padding:2px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Menlo","Monaco",monospace;}
+.warning{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:14px 18px;margin:12px 0;font-size:16px;}
+.tip{background:#d4edda;border:1px solid #28a745;border-radius:8px;padding:14px 18px;margin:12px 0;font-size:16px;}
+.important{background:#f8d7da;border:1px solid #dc3545;border-radius:8px;padding:14px 18px;margin:12px 0;font-size:16px;}
+p{margin:12px 0;}
+summary{cursor:pointer;color:#cf222e;font-weight:600;font-size:17px;padding:8px 0;}
+details{margin:12px 0;}
+@media(max-width:600px){body{padding:15px;font-size:16px;}pre{font-size:14px;padding:12px 14px;}h1{font-size:24px;}h2{font-size:20px;}}
+</style></head>
+<body>
+<h1>⚠️ Python 常见陷阱与易错点</h1>
+
+<div class="tip">
+<strong>💡 提示：</strong>这些是 Python 中常见但容易出错的知识点，看过之后能避免 90% 的 bug！
+</div>
+
+<h2>一、可变默认参数（最常见！）</h2>
+
+<div class="important">
+<strong>⚠️ 危险：默认参数在函数定义时求值一次，后续调用共享同一个对象！</strong>
+</div>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># ❌ 危险写法
+def append_to(element, to=[]):
+    to.append(element)
+    return to
+
+my_list = append_to(12)
+print(my_list)   # [12]
+
+my_other_list = append_to(42)
+print(my_other_list)  # [12, 42] ← 竟然变了！
+
+# ✅ 正确写法
+def append_to(element, to=None):
+    if to is None:
+        to = []
+    to.append(element)
+    return to
+
+my_list = append_to(12)
+print(my_list)   # [12]
+
+my_other_list = append_to(42)
+print(my_other_list)  # [42] ← 每次都是新的</pre>
+</details>
+
+<h2>二、闭包延迟绑定</h2>
+
+<div class="important">
+<strong>⚠️ 闭包中的变量在调用时才查找值，不是在定义时！</strong>
+</div>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># ❌ 危险写法
+def create_multipliers():
+    return [lambda x: i * x for i in range(5)]
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
+# 输出: 8 8 8 8 8  ← 全是 4*2=8！
+
+# ✅ 正确写法1：默认参数立即绑定
+def create_multipliers():
+    return [lambda x, i=i: i * x for i in range(5)]
+
+# ✅ 正确写法2：functools.partial
+from functools import partial
+from operator import mul
+
+def create_multipliers():
+    return [partial(mul, i) for i in range(5)]
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
+# 输出: 0 2 4 6 8 ✅</pre>
+</details>
+
+<h2>三、== vs is</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># == 比较值是否相等
+# is 比较是否是同一个对象（同一内存地址）
+
+a = [1, 2, 3]
+b = [1, 2, 3]
+print(a == b)   # True  ← 值相等
+print(a is b)   # False ← 不同对象
+
+# 字符串驻留机制（小整数和短字符串）
+a = "hello"
+b = "hello"
+print(a == b)   # True
+print(a is b)   # True ← 同一个对象（Python 优化）
+
+# 小整数池（-5 ~ 256）
+a = 257
+b = 257
+print(a is b)   # False ← 超过池的范围
+
+# 重要场景：判断 None
+if x is None:   # ✅ 正确
+    pass
+if x == None:   # ❌ 不好（虽然也能工作）
+    pass</pre>
+</details>
+
+<h2>四、字典 fromkeys 陷阱</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># ❌ 危险：所有键共享同一个列表！
+a = ['a', 'b', 'c']
+b = dict.fromkeys(a, [])
+print(b)                   # {'a': [], 'b': [], 'c': []}
+print(b['a'] is b['b'])   # True ← 同一个列表！
+
+b['a'].append(1)
+print(b)                   # {'a': [1], 'b': [1], 'c': [1]} ← 全变了！
+
+# ✅ 正确：字典推导式
+b = {k: [] for k in a}
+print(b['a'] is b['b'])   # False ← 各自独立</pre>
+</details>
+
+<h2>五、遍历时修改字典</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># ❌ 危险：遍历时修改字典大小
+d = {'a': 1, 'b': 2, 'c': 3}
+for k in d:
+    if k > 'a':
+        del d[k]
+# RuntimeError: dictionary changed size during iteration
+
+# ✅ 正确：先收集要删除的键
+d = {'a': 1, 'b': 2, 'c': 3}
+to_del = [k for k, v in d.items() if v > 1]
+for k in to_del:
+    del d[k]
+print(d)  # {'a': 1}</pre>
+</details>
+
+<h2>六、bool 是 int 的子类</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># bool 是 int 的子类！
+print(issubclass(bool, int))   # True
+print(True + 1)                # 2 ← True=1
+print(False + 1)               # 1 ← False=0
+
+# 容易出错的地方：类型检查
+data = {'a': 1, 'b': 2, 'c': True}
+
+# ❌ 错误：会把 True 也算进去
+int_keys = [k for k, v in data.items() if type(v) is int]
+print(int_keys)  # ['a', 'b', 'c'] ← 包含 True！
+
+# ✅ 正确：排除 bool
+int_keys = [k for k, v in data.items() if type(v) is int and type(v) is not bool]
+print(int_keys)  # ['a', 'b']
+
+# ✅✅ 更推荐：isinstance（自动排除 bool）
+int_keys = [k for k, v in data.items() if isinstance(v, int) and not isinstance(v, bool)]
+print(int_keys)  # ['a', 'b']</pre>
+</details>
+
+<h2>七、深拷贝 vs 浅拷贝</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre>import copy
+
+# 浅拷贝：外层独立，内层共享
+a = [1, 2, [3, 4]]
+b = a[:]              # 或 copy.copy(a)
+b[2].append(5)
+print(a)   # [1, 2, [3, 4, 5]] ← 原列表也被改了！
+
+# 深拷贝：完全独立
+a = [1, 2, [3, 4]]
+b = copy.deepcopy(a)
+b[2].append(5)
+print(a)   # [1, 2, [3, 4]] ← 不受影响
+
+# ⚠️ 特别注意：字典嵌套
+d = {'a': [1, 2], 'b': [3, 4]}
+d_copy = d.copy()           # 浅拷贝
+d_copy['a'].append(99)
+print(d)    # {'a': [1, 2, 99], 'b': [3, 4]} ← 原字典也被改了！
+
+d_deep = copy.deepcopy(d)   # 深拷贝
+d_deep['a'].append(99)
+print(d)    # {'a': [1, 2, 99], 'b': [3, 4]} ← 不受影响</pre>
+</details>
+
+<h2>八、字符串不可变</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># 字符串是不可变的！不能通过索引修改
+s = "hello"
+# s[0] = 'H'  # TypeError: 'str' object does not support item assignment
+
+# 正确做法：创建新字符串
+s = "hello"
+s = s[0].upper() + s[1:]
+print(s)  # "Hello"
+
+# ⚠️ 特别注意：+= 每次创建新对象
+s = ""
+for i in range(1000):
+    s += str(i)  # 效率低！每次都创建新字符串
+
+# ✅ 高效做法
+parts = []
+for i in range(1000):
+    parts.append(str(i))
+s = "".join(parts)  # 一次拼接
+
+# ✅ 或者列表推导式
+s = "".join(str(i) for i in range(1000))</pre>
+</details>
+
+<h2>九、元组并非完全不可变</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># 元组的元素不可变，但元素如果是可变对象，则可以修改！
+t = ([1, 2], [3, 4])
+# t[0] = [5, 6]  # TypeError: 'tuple' object does not support assignment
+
+# 但可以修改列表元素
+t[0].append(99)
+print(t)  # ([1, 2, 99], [3, 4]) ← 元组本身没变，但列表变了！
+
+# ⚠️ 特别注意：hash 问题
+d = {}
+d[(1, 2)] = "value1"
+d[(1, [2, 3])] = "value2"  # TypeError: unhashable type: 'list'
+# 因为列表不可哈希，所以包含列表的元组也不能做字典键</pre>
+</details>
+
+<h2>十、range vs iterator</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># range 是惰性的，不立即生成所有元素
+r = range(10)
+print(r)        # range(0, 10)
+print(list(r))  # [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+# enumerate 同时迭代索引和值
+for i, v in enumerate(['a', 'b', 'c']):
+    print(i, v)
+# 0 a
+# 1 b
+# 2 c
+
+# zip 合并多个迭代器
+names = ['Alice', 'Bob']
+scores = [90, 85]
+for name, score in zip(names, scores):
+    print(name, score)
+# Alice 90
+# Bob 85
+
+# ⚠️ zip 只取最短的
+names = ['Alice', 'Bob', 'Charlie']
+scores = [90, 85]
+print(list(zip(names, scores)))  # [('Alice', 90), ('Bob', 85)] ← 丢失 Charlie！
+
+# 用 zip_longest 取最长的
+from itertools import zip_longest
+print(list(zip_longest(names, scores, fillvalue='N/A')))
+# [('Alice', 90), ('Bob', 85), ('Charlie', 'N/A')]</pre>
+</details>
+
+<h2>十一、浮点数精度问题</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># ❌ 浮点数精度陷阱
+print(0.1 + 0.2)  # 0.30000000000000004 ≠ 0.3
+print(0.1 + 0.2 == 0.3)  # False
+
+# ✅ 解决方案1：使用 decimal
+from decimal import Decimal
+print(Decimal('0.1') + Decimal('0.2'))  # 0.3
+print(Decimal('0.1') + Decimal('0.2') == Decimal('0.3'))  # True
+
+# ✅ 解决方案2：比较时使用容差
+def is_equal(a, b, tolerance=1e-9):
+    return abs(a - b) < tolerance
+
+print(is_equal(0.1 + 0.2, 0.3))  # True
+
+# ✅ 解决方案3：转为整数运算（金额场景）
+# 金额都用"分"而不是"元"存储
+price_in_cents = 100  # 1.00 元
+tax_in_cents = 5      # 0.05 元
+print(price_in_cents + tax_in_cents)  # 105 = 1.05 元</pre>
+</details>
+
+<h2>十二、generator vs list</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># 列表推导式：立即生成所有元素，占内存
+gen = [x**2 for x in range(1000000)]  # 立即占用大量内存
+
+# 生成器表达式：惰性求值，几乎不占内存
+gen = (x**2 for x in range(1000000))  # 不立即生成，占内存极少
+
+# 迭代生成器
+for i, val in enumerate(gen):
+    if i >= 5:
+        break
+    print(val)  # 0, 1, 4, 9, 16
+
+# 生成器只能迭代一次！
+gen = (x**2 for x in range(5))
+print(list(gen))  # [0, 1, 4, 9, 16]
+print(list(gen))  # [] ← 第二次是空的！
+
+# ✅ 选择哪个？
+# - 数据量大 → 用生成器（省内存）
+# - 需要多次迭代 → 用列表
+# - 需要索引 → 用列表</pre>
+</details>
+
+<h2>十三、try-except-else-finally</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># else：只有在没有异常时执行
+try:
+    x = 1 / 2
+except ZeroDivisionError:
+    print("除零错误")
+else:
+    print("没有异常")  # ✅ 会执行
+
+# finally：无论是否有异常都会执行
+try:
+    x = 1 / 0
+except ZeroDivisionError:
+    print("除零错误")
+finally:
+    print("finally 总是执行")  # ✅ 也会执行
+
+# 常见陷阱：finally 中的 return 会覆盖 try 中的 return！
+def bad_func():
+    try:
+        return 1
+    finally:
+        return 2  # 覆盖了 try 中的 return！
+
+print(bad_func())  # 2 ← 不是 1！
+
+# ✅ 正确做法
+def good_func():
+    try:
+        return 1
+    except:
+        return 2
+    # 不要在 finally 中 return</pre>
+</details>
+
+<h2>十四、global vs nonlocal</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># global：修改全局变量
+x = 10
+def func1():
+    global x
+    x = 20
+func1()
+print(x)  # 20
+
+# nonlocal：修改外层函数（非全局）变量
+def outer():
+    x = 10
+    def inner():
+        nonlocal x
+        x = 20
+    inner()
+    print(x)  # 20
+outer()
+
+# ⚠️ 特别注意：不声明直接使用 = 是创建新变量
+x = 10
+def func2():
+    x = 20  # 这是创建新局部变量，不是修改全局！
+func2()
+print(x)  # 10 ← 全局 x 没变！
+
+# ✅ 正确：先 global 声明
+x = 10
+def func3():
+    global x
+    x = 20
+func3()
+print(x)  # 20</pre>
+</details>
+
+<h2>十五、*args 和 **kwargs 顺序</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># 参数顺序：位置参数 → 默认参数 → *args → 关键字参数 → **kwargs
+
+def func(a, b=10, *args, c, d=20, **kwargs):
+    print(f"a={a}, b={b}, args={args}, c={c}, d={d}, kwargs={kwargs}")
+
+# ✅ 正确调用
+func(1, 2, 3, 4, c=5, d=6, e=7)
+# a=1, b=2, args=(3,4), c=5, d=6, kwargs={'e':7}
+
+# ❌ 错误调用
+func(1, b=2, 3, c=4)     # 关键字参数后不能有位置参数
+func(a=1, 2, c=3)        # 关键字参数后不能有位置参数
+
+# ⚠️ 默认参数陷阱：默认参数在定义时求值
+def func(a, items=[]):  # ❌ 危险
+    items.append(a)
+    return items
+
+print(func(1))  # [1]
+print(func(2))  # [1, 2] ← 同一个列表！
+
+# ✅ 正确
+def func(a, items=None):
+    if items is None:
+        items = []
+    items.append(a)
+    return items</pre>
+</details>
+
+<h2>十六、enumerate 起始值</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># enumerate 默认从 0 开始
+for i, v in enumerate(['a', 'b', 'c']):
+    print(i, v)
+# 0 a
+# 1 b
+# 2 c
+
+# 可以指定起始值
+for i, v in enumerate(['a', 'b', 'c'], start=1):
+    print(i, v)
+# 1 a
+# 2 b
+# 3 c
+
+# ⚠️ 常见错误：start 参数位置
+# enumerate(['a','b','c'], 1)  ❌
+# enumerate(['a','b','c'], start=1)  ✅</pre>
+</details>
+
+<h2>十七、dict.get 陷阱</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># dict.get(key, default) vs dict[key]
+d = {'a': 1, 'b': None}
+
+# get：键不存在返回默认值，不修改字典
+print(d.get('c', 0))      # 0
+print(d)                   # {'a': 1, 'b': None} ← 不变
+
+# []：键不存在会抛出 KeyError
+# print(d['c'])  # KeyError
+
+# ✅ 用 get 配合条件判断
+if d.get('b') is None:
+    print("b 不存在或值为 None")
+
+# ⚠️ 注意：值为 None 时 get 也返回 None
+print(d.get('b'))  # None ← 分不清是"不存在"还是"值是 None"
+
+# ✅ 解决方案：用 in 判断键是否存在
+if 'b' not in d:
+    print("b 不存在")
+else:
+    print(f"b 的值是 {d['b']}")</pre>
+</details>
+
+<h2>十八、切片越界</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># 切片越界不会报错！
+a = [1, 2, 3]
+print(a[5:10])    # [] ← 不会报错，返回空列表
+print(a[5:])      # [] ← 不会报错
+print(a[:10])     # [1, 2, 3] ← 不会报错
+
+# 但索引越界会报错
+# print(a[5])  # IndexError
+
+# 负数索引也适用
+print(a[-10:])    # [1, 2, 3] ← 不会报错</pre>
+</details>
+
+<h2>十九、isinstance vs type</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># type() 精确匹配，不考虑继承
+class Animal:
+    pass
+
+class Dog(Animal):
+    pass
+
+dog = Dog()
+print(type(dog) is Dog)      # True
+print(type(dog) is Animal)   # False
+
+# isinstance() 考虑继承关系
+print(isinstance(dog, Dog))    # True
+print(isinstance(dog, Animal)) # True ← 父类也算！
+
+# ✅ 建议用 isinstance() 判断类型
+# ✅ 避免用 type(x) == int，用 isinstance(x, int)</pre>
+</details>
+
+<h2>二十、装饰器顺序</h2>
+
+<details>
+<summary>点击查看示例</summary>
+<pre># 装饰器从下往上执行
+def decorator_a(func):
+    print("A")
+    return func
+
+def decorator_b(func):
+    print("B")
+    return func
+
+@decorator_a
+@decorator_b
+def my_func():
+    pass
+
+# 输出顺序：B A ← 先执行 @decorator_b，再执行 @decorator_a
+# 相当于：my_func = decorator_a(decorator_b(my_func))
+
+# ✅ 如果需要参数，用装饰器工厂
+def timer(timeout):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            import time
+            start = time.time()
+            result = func(*args, **kwargs)
+            print(f"耗时 {time.time() - start:.2f}s")
+            return result
+        return wrapper
+    return decorator
+
+@timer(5)  # timeout=5
+def slow_func():
+    pass</pre>
+</details>
+
+<h2>📌 快速查阅表</h2>
+
+<details>
+<summary>点击查看</summary>
+<pre>┌─────────────────────────────────────────────────────────────┐
+│ 问题                          │ 解决方法                      │
+├─────────────────────────────────────────────────────────────┤
+│ 默认参数是列表/字典           │ 用 None + 函数内创建          │
+│ 闭包变量延迟绑定             │ 默认参数立即绑定 i=i          │
+│ == vs is                     │ == 值比较，is 对象比较       │
+│ fromkeys 共享列表            │ 用字典推导式                  │
+│ 遍历时修改字典               │ 先收集要删的键再删除          │
+│ bool 是 int 子类             │ 用 isinstance 排除 bool     │
+│ 浮点数精度                   │ 用 decimal 或容差比较        │
+│ 生成器只能用一次             │ 需要多次用列表               │
+│ global 陷阱                  │ 先声明再修改                  │
+│ 参数顺序                     │ 位置→*args→关键字→**kwargs   │
+└─────────────────────────────────────────────────────────────┘</pre>
+</details>
+
+</body></html>

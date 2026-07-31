@@ -174,3 +174,232 @@ print(build_summary(records))</pre></div></div>
 
       </div>
     </div>
+
+    <div class="section" style="margin-top:18px;">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span>  第2次周报</span><span class="badge">13题</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  一、选择题（第1~20题，每题2分）</div>
+        </div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第4题：多变量赋值</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">要在一条赋值语句中把整数 0 同时赋给 x、y、z，正确写法是（ ）。<br>A. x + y + z = 0&nbsp;&nbsp;B. x, y, z = 0&nbsp;&nbsp;C. x; y; z = 0&nbsp;&nbsp;D. x = y = z = 0</div></div>
+        <div class="qa-item"><div class="q">  正确答案</div><div class="a">D</div></div>
+        <div class="qa-item"><div class="q">  解析</div><div class="a">链式赋值 x = y = z = 0 可同时给多个变量赋同一个值；x, y, z = 0 因 0 不可迭代会报错。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第6题：列表 reverse()</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有列表 levels，要直接反转其中元素的排列顺序，正确语句是（ ）。<br>A. reverse(levels)&nbsp;&nbsp;B. levels.reverse()&nbsp;&nbsp;C. levels.sort(reverse=False)&nbsp;&nbsp;D. levels.reversed()</div></div>
+        <div class="qa-item"><div class="q">  正确答案</div><div class="a">B</div></div>
+        <div class="qa-item"><div class="q">  解析</div><div class="a">列表方法 levels.reverse() 原地反转；reversed() 需配合 list() 使用并返回新对象。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第7题：列表 remove()</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">列表 devices 中包含字符串 'Phone'，要根据这个值删除该元素，正确语句是（ ）。<br>A. devices.clear('Phone')&nbsp;&nbsp;B. devices.pop('Phone')&nbsp;&nbsp;C. del devices['Phone']&nbsp;&nbsp;D. devices.remove('Phone')</div></div>
+        <div class="qa-item"><div class="q">  正确答案</div><div class="a">D</div></div>
+        <div class="qa-item"><div class="q">  解析</div><div class="a">remove(值) 按值删除第一个匹配元素；pop 和 del 按索引删除。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第11题：字典删除键 del</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有字典 settings = {'theme': 'dark', 'lang': 'zh'}，删除键 theme 及其值的正确语句是（ ）。<br>A. settings.clear('theme')&nbsp;&nbsp;B. settings.remove('theme')&nbsp;&nbsp;C. del settings['theme']&nbsp;&nbsp;D. settings.pop()</div></div>
+        <div class="qa-item"><div class="q">  正确答案</div><div class="a">C</div></div>
+        <div class="qa-item"><div class="q">  解析</div><div class="a">del settings[key] 按键删除键值对；pop() 需传入键名才能按键删除。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第20题：JSON 格式</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">下列内容中，符合 JSON 格式要求的是（ ）。<br>A. {'name': '小周'}&nbsp;&nbsp;B. {"name": "小周"}&nbsp;&nbsp;C. {name: "小周"}&nbsp;&nbsp;D. {"name": "小周", "score": 88}</div></div>
+        <div class="qa-item"><div class="q">  正确答案</div><div class="a">B</div></div>
+        <div class="qa-item"><div class="q">  解析</div><div class="a">JSON 要求键和字符串值必须用双引号。B 与 D 均合规，单选通常选 B。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  二、编程题（第21~28题）</div>
+        </div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第21题：列表与字典的基本操作（5分）</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有实习生信息如下，请分别写出三条语句：① 向 skills 列表末尾添加 'Linux'；② 把 skills 中的 'Python' 修改为 'Python基础'；③ 将 progress 中的 completed 增加 1。<pre>trainee = {
+    'name': '小周',
+    'skills': ['Python'],
+    'progress': {'completed': 2}
+}</pre></div></div>
+        <div class="qa-item"><div class="q">  参考答案</div><div class="a"><pre>① trainee['skills'].append('Linux')
+② trainee['skills'][0] = 'Python基础'
+③ trainee['progress']['completed'] += 1</pre></div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">嵌套结构逐层索引；append() 追加；直接赋值修改；复合赋值运算。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第22题：类的初始化方法纠错（5分）</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">下面代码希望创建 Tester 类，并把 name、level 保存为实例属性，但当前写法不能达到目的。请从方法参数和实例属性两个方面指出问题，并改写 __init__() 方法。<pre>class Tester:
+    def __init__(name, level):
+        name = name
+        level = level</pre></div></div>
+        <div class="qa-item"><div class="q">  参考答案</div><div class="a"><pre>class Tester:
+    def __init__(self, name, level):
+        self.name = name
+        self.level = level</pre></div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">方法参数问题：__init__ 是实例方法，第一个参数必须是 self。<br>实例属性问题：name = name 创建的是局部变量，方法结束后即销毁，必须用 self.name = name 绑定到实例。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第23题：使用 while 统计成绩（5分）</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有成绩列表 scores。只使用 while 循环和 if 语句，统计其中不低于 60 分的成绩个数，保存到 passed_count，并在循环结束后打印。<pre>scores = [80, 55, 92, 60]</pre></div></div>
+        <div class="qa-item"><div class="q">  参考答案</div><div class="a"><pre>scores = [80, 55, 92, 60]
+passed_count = 0
+i = 0
+while i &lt; len(scores):
+    if scores[i] &gt;= 60:
+        passed_count += 1
+    i += 1
+print(passed_count)   # 输出 3</pre></div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">用索引变量 i 控制 while 循环；遍历时必须 i += 1 防止死循环。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第24题：保存并读取 JSON 数据（5分）</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有字典 data。请使用 pathlib.Path 和 json 模块完成以下操作：① 将 data 保存到 result.json；② 再读取该文件，将数据还原为 Python 对象并赋给变量 loaded。文件使用 UTF-8 编码，保存中文时不要转义。<pre>data = {'name': '小周', 'score': 88}</pre></div></div>
+        <div class="qa-item"><div class="q">  参考答案</div><div class="a"><pre>from pathlib import Path
+import json
+
+data = {'name': '小周', 'score': 88}
+
+path = Path('result.json')
+path.write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8')
+
+loaded = json.loads(path.read_text(encoding='utf-8'))</pre></div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">ensure_ascii=False 保证中文不转义；write_text/read_text 统一指定 encoding='utf-8'。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第25题：建立技能索引（14分）</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">实现函数 build_skill_index(trainees)。参数 trainees 是由实习生字典组成的列表，每个字典都包含 name 和 skills。函数返回一个新字典：键为技能名，值为掌握该技能的实习生姓名列表。技能名称不固定，不得针对示例值硬编码；不得修改传入数据。<pre>trainees = [
+    {'name': '小陈', 'skills': ['Python', 'Git']},
+    {'name': '小李', 'skills': ['Git', 'Linux']},
+    {'name': '小王', 'skills': []},
+]
+# 期望返回：{'Python': ['小陈'], 'Git': ['小陈', '小李'], 'Linux': ['小李']}</pre></div></div>
+        <div class="qa-item"><div class="q">  参考答案</div><div class="a"><pre>def build_skill_index(trainees):
+    skill_index = {}
+    for trainee in trainees:
+        for skill in trainee['skills']:
+            if skill not in skill_index:
+                skill_index[skill] = []
+            skill_index[skill].append(trainee['name'])
+    return skill_index</pre></div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">嵌套遍历；字典 key 不存在时先初始化空列表再 append；构建新字典不动原数据。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第26题：继承并扩展员工类（13分）</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有父类 Employee。实现子类 Intern：① 创建实例时接收 name 和 direction，调用父类初始化方法保存 name；② 把 direction 保存为实例属性，并为每个实例创建独立的空列表 skills；③ 实现 add_skill(skill)，技能不存在时添加并返回 True，已存在时不重复添加并返回 False。<pre>class Employee:
+    def __init__(self, name):
+        self.name = name</pre></div></div>
+        <div class="qa-item"><div class="q">  参考答案</div><div class="a"><pre>class Intern(Employee):
+    def __init__(self, name, direction):
+        super().__init__(name)
+        self.direction = direction
+        self.skills = []
+
+    def add_skill(self, skill):
+        if skill not in self.skills:
+            self.skills.append(skill)
+            return True
+        else:
+            return False</pre></div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">super().__init__() 调用父类构造方法；每个实例独立的 skills 列表；用 in 判断避免重复添加。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第27题：读取有效成绩（13分）</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">实现函数 read_valid_scores(filename)。文本文件每行最多包含一个成绩，但可能出现空行、非整数文本或超出 0～100 的数。返回全部有效成绩组成的列表；忽略空行、非整数和越界成绩；文件不存在时返回空列表。要求使用 pathlib.Path 读取文件，并使用异常处理应对文件不存在和非整数文本。</div></div>
+        <div class="qa-item"><div class="q">  参考答案</div><div class="a"><pre>from pathlib import Path
+
+def read_valid_scores(filename):
+    path = Path(filename)
+    if not path.exists():
+        return []
+
+    valid_scores = []
+    try:
+        content = path.read_text(encoding='utf-8')
+        for line in content.splitlines():
+            line = line.strip()
+            if line == '':
+                continue
+            try:
+                score = int(line)
+            except ValueError:
+                continue
+            if 0 &lt;= score &lt;= 100:
+                valid_scores.append(score)
+    except Exception:
+        return []
+
+    return valid_scores</pre></div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">Path.exists() 先判断文件；内层 try 捕获 int() 的 ValueError；外层 try 兜底文件读取异常。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  第28题：更新培训成绩文件（20分）</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">实现函数 update_training_result(filename, name, course, score)。JSON 文件保存"姓名—课程成绩字典"。要求使用 pathlib.Path 和 json 模块。<br>规则：① score 不在 0～100（含边界）时直接返回 False，且不读写文件；② 正常情况下读取原有 JSON 数据，文件不存在、内容为空或 JSON 格式损坏时从空字典开始；③ 姓名不存在则新增该姓名，课程已存在则更新，否则新增；④ 将完整数据写回原文件，中文不转义并使用 2 个空格缩进；⑤ 成功后返回 True。<pre>{
+    "小陈": {"Python": 82},
+    "小李": {"Git": 90}
+}</pre></div></div>
+        <div class="qa-item"><div class="q">  参考答案</div><div class="a"><pre>from pathlib import Path
+import json
+
+def update_training_result(filename, name, course, score):
+    if not (0 &lt;= score &lt;= 100):
+        return False
+
+    path = Path(filename)
+
+    try:
+        content = path.read_text(encoding='utf-8')
+        if not content.strip():
+            data = {}
+        else:
+            data = json.loads(content)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = {}
+
+    if name not in data:
+        data[name] = {}
+    data[name][course] = score
+
+    path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2),
+        encoding='utf-8'
+    )
+    return True</pre></div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">先校验再读写；异常合并捕获 FileNotFoundError 与 JSONDecodeError；ensure_ascii=False + indent=2 保证中文与缩进。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;margin-top:10px;">
+          <div class="q" style="font-size:15px;">  本周学习总结</div>
+        </div>
+        <div class="qa-item"><div class="q">  薄弱点</div><div class="a">
+<strong>1. 基础概念：</strong>输入输出、变量赋值、f-string 格式化等基础选择题仍易错，说明对基础概念的理解还不够扎实。<br>
+<strong>2. 列表与字典操作：</strong>append/remove/reverse 等列表方法、嵌套字典的访问与删除（del 与 pop 的区别）需加强记忆。<br>
+<strong>3. 循环与流程控制：</strong>while 循环的终止条件、break 的跳转时机要结合代码执行过程理解。<br>
+<strong>4. 函数与类：</strong>self 参数、重写父类方法、__init__ 的 self 绑定、继承时调用 super().__init__() 等面向对象内容需重点练习。<br>
+<strong>5. 文件与异常：</strong>pathlib.Path 的读写、JSON 的 ensure_ascii=False 与缩进、异常捕获的组合使用是编程题的高频考点。
+        </div></div>
+        <div class="qa-item"><div class="q">  下周计划</div><div class="a">
+- 继续复习基础概念与数据类型操作<br>
+- 重点练习面向对象（类、继承、重写）与文件/JSON 编程题<br>
+- 把本周错题重新手写一遍，加深印象
+        </div></div>
+
+      </div>
+    </div>
