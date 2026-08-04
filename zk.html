@@ -327,27 +327,30 @@ loaded = json.loads(path.read_text(encoding='utf-8'))</pre></div></div>
 
 def read_valid_scores(filename):
     path = Path(filename)
-    if not path.exists():
-        return []
-
     valid_scores = []
+
     try:
-        content = path.read_text(encoding='utf-8')
-        for line in content.splitlines():
-            line = line.strip()
-            if line == '':
-                continue
-            try:
-                score = int(line)
-            except ValueError:
-                continue
-            if 0 &lt;= score &lt;= 100:
-                valid_scores.append(score)
-    except Exception:
+        with path.open('r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    score = int(line)
+                except ValueError:
+                    continue
+                if 0 &lt;= score &lt;= 100:
+                    valid_scores.append(score)
+    except FileNotFoundError:
         return []
 
     return valid_scores</pre></div></div>
-        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">Path.exists() 先判断文件；内层 try 捕获 int() 的 ValueError；外层 try 兜底文件读取异常。</div></div>
+        <div class="qa-item"><div class="q">  核心知识点</div><div class="a">
+<code>with path.open('r', encoding='utf-8') as f:</code> 逐行读取并自动关闭文件。<br>
+① <code>path.open('r')</code>：以只读模式打开文件，<code>encoding='utf-8'</code> 指定用 UTF-8 编码解码，处理中文必需；<br>
+② <code>with ... as f</code>：把文件对象赋给变量 f，代码块结束后自动调用 close() 关闭文件，避免忘记关闭造成占用；<br>
+③ <code>for line in f</code>：直接迭代文件对象逐行读取，自动按换行符切分；<br>
+④ 内层 try 捕获 int() 的 ValueError，外层 except FileNotFoundError 处理文件不存在返回空列表。</div></div>
 
         <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
           <div class="q" style="font-size:15px;">  第28题：更新培训成绩文件（20分）</div>
@@ -399,6 +402,241 @@ def update_training_result(filename, name, course, score):
 - 继续复习基础概念与数据类型操作<br>
 - 重点练习面向对象（类、继承、重写）与文件/JSON 编程题<br>
 - 把本周错题重新手写一遍，加深印象
+        </div></div>
+
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:18px;">
+      <div class="section-header" onclick="toggle(this)">
+        <h2><span>  错题订正（试炼题-第二次周报）</span><span class="badge">7题</span></h2>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 1（第14题）：while 循环中的 continue</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">下列代码的输出是（ ）。<br><pre>n = 0
+while n &lt; 5:
+    n += 1
+    if n == 2:
+        continue
+    print(n)</pre>
+A. 1 3 4 5　　B. 1 2 3 4 5　　C. 3 4 5　　D. 程序无限循环</div></div>
+        <div class="qa-item"><div class="q">  我的答案</div><div class="a">D（程序无限循环）</div></div>
+        <div class="qa-item"><div class="q">  我的错误</div><div class="a">误以为 continue 会导致死循环，忽略了 <code>n += 1</code> 在 continue 之前已执行，n 仍会自增并最终达到 5 退出循环。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确输出</div><div class="a">1 3 4 5（每逢 n=2 时继续，循环不会死循环）</div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">continue 只是跳过本次循环剩余的代码，<code>n += 1</code> 已先执行，索引自增不受影响。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 2（第21题③）：字典值累加</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有实习生信息如下，请分别写出三条语句。③ 将 stats 中的 'hours' 增加 2。<br><pre>trainee = {
+    'name': '小郑',
+    'tasks': ['写代码'],
+    'stats': {'hours': 6}
+}</pre></div></div>
+        <div class="qa-item"><div class="q">  题目要求</div><div class="a">将 trainee['stats'] 中的 'hours' 增加 2。</div></div>
+        <div class="qa-item"><div class="q">  我的错误代码</div><div class="a"><pre>trainee['stats'] += 2   # ❌</pre></div></div>
+        <div class="qa-item"><div class="q">  我的错误</div><div class="a">b'trainee['stats']' 是一个字典，不能直接与整数相加，会报 TypeError。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>trainee['stats']['hours'] += 2   # 先取出字典，再取键累加</pre></div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">嵌套字典要先逐层用 [ ] 定位到具体键，再进行运算。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 3（第24题）：JSON 保存与读取</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有字典 data。请使用 pathlib.Path 和 json 模块完成以下操作：<br>① 将 data 保存到 result.json；<br>② 再读取该文件，将数据还原为 Python 对象并赋给变量 loaded。<br>文件使用 UTF-8 编码，保存中文时不要转义，并使用 2 个空格缩进。<br><pre>data = {'name': '小周', 'score': 88}</pre></div></div>
+        <div class="qa-item"><div class="q">  我的错误代码</div><div class="a"><pre>import json
+path = Path('result.json')
+json.loads(data)              # ❸ data 是字典，不是 JSON 字符串
+a = path.write_note(data)     # ❸ 方法名不存在的
+b = path.write_note(encoding='utf-8')</pre></div></div>
+        <div class="qa-item"><div class="q">  我的错误</div><div class="a">① <code>json.loads()</code> 用于把 JSON 字符串转对象，data 已是字典不需要转换；② <code>Path</code> 没有 write_note 方法，正确的是 write_text；③ 读取时也漏写了 json.loads(read_text)。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>from pathlib import Path
+import json
+
+data = {'name': '小周', 'score': 88}
+
+path = Path('result.json')
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+
+loaded = json.loads(path.read_text(encoding='utf-8'))</pre></div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">存：<code>json.dumps(对象) → write_text</code>；取：<code>read_text → json.loads</code>。<code>ensure_ascii=False</code> 保证中文不转义，<code>indent=2</code> 缩进。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 4（第25题）：建立课程索引</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">实现函数 build_course_index(students)。参数 students 是由学生字典组成的列表，每个字典都包含 name 和 courses。函数返回一个新字典：键为课程名，值为学习该课程的学生姓名列表。课程名称不固定，不得针对示例值硬编码；不得修改传入数据。<br><pre>students = [
+    {'name': '小陈', 'courses': ['Python', '数据库']},
+    {'name': '小李', 'courses': ['数据库', 'Linux']},
+    {'name': '小王', 'courses': []},
+]
+# 期望返回：{'Python': ['小陈'], '数据库': ['小陈', '小李'], 'Linux': ['小李']}</pre></div></div>
+        <div class="qa-item"><div class="q">  我的错误代码</div><div class="a"><pre>def build_course_index(students):
+    new_dict = {}
+    for student in students:
+        for course in student['courses']:
+            if course not in student['courses']:   # ❌ 判断目标错误
+                new_dict[course] = []
+            new_dict[course].append(student['name'])
+    return new_dict</pre></div></div>
+        <div class="qa-item"><div class="q">  我的错误</div><div class="a">判断语句写成了 <code>course not in student['courses']</code>，判断的是课程是否在学生的课程列表里（永远存在），应判断课程是否已出现在结果字典 <code>new_dict</code> 中。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>def build_course_index(students):
+    new_dict = {}
+    for student in students:
+        for course in student['courses']:
+            if course not in new_dict:      # 判断是否已在新字典
+                new_dict[course] = []
+            new_dict[course].append(student['name'])
+    return new_dict</pre></div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">判断是否已在 <b>目标容器</b>（new_dict）中，而不是原文数据；只有不存在时才先初始化空列表再 append。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 5（第26题）：继承并扩展测试类</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">已有父类 Employee。实现子类 Tester：<br>① 创建实例时接收 name 和 tool，调用父类初始化方法保存 name；<br>② 把 tool 保存为实例属性，并为每个实例创建独立的空列表 bugs；<br>③ 实现 report_bug(bug)，bug 不存在时添加并返回 True，已存在时不重复添加并返回 False。<br><pre>class Employee:
+    def __init__(self, name):
+        self.name = name</pre></div></div>
+        <div class="qa-item"><div class="q">  我的错误代码</div><div class="a"><pre>class Tester:                      # ❌ 没有继承 Employee
+    def __init__(self, name, tool):
+        super().__init__(name)
+        self.tool = tool
+        self.bugs = []
+    def report_bug(self, bug):
+        if bug not in self.bugs:
+            return True              # ❌ 只返回 True，没有添加
+        else:
+            return False</pre></div></div>
+        <div class="qa-item"><div class="q">  我的错误</div><div class="a">① class 后未写 <code>(Employee)</code>，导致没继承父类，super() 调用失败；② report_bug 里返回 True 前没有把 bug <code>append</code> 进 bugs 列表，bugs 永远是空的。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>class Tester(Employee):
+    def __init__(self, name, tool):
+        super().__init__(name)
+        self.tool = tool
+        self.bugs = []
+
+    def report_bug(self, bug):
+        if bug not in self.bugs:
+            self.bugs.append(bug)   # 先添加再返回 True
+            return True
+        else:
+            return False</pre></div></div>
+        <div class="qa-item"><div class="q">  核心</div><div class="a">继承要写父类名 <code>Tester(Employee)</code>；需要状态变化的逻辑要真正执行操作（append），再返回结果。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 6（第27题）：读取有效项目预算</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">实现函数 read_valid_budgets(filename)。文本文件每行最多包含一个预算数字，但可能出现空行、非数字文本或负数。返回全部有效预算（0 及以上的整数）组成的列表；忽略空行、非数字和负数；文件不存在时返回空列表。要求使用 pathlib.Path 读取文件，并使用异常处理应对文件不存在和非数字文本。</div></div>
+        <div class="qa-item"><div class="q">  我的错误代码</div><div class="a"><pre>def read_valid_budgets(filename):
+    path = Path(filename)
+    new_list = []
+    try:
+        with path.open('r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line = '':      ❌ 应为 ==（赋值写成了比较）
+                    continue
+                try:
+                    budget = int(line)
+                except ValueEroor:    ❌ 拼写错误，应为 ValueError
+                    continue
+                if 0 &lt;= budget &lt;= 100:   ❌ 题面要求 ≥0，无上限100
+                    new_list.append(budget)
+        return new_list               ❌ return 缩进在 try 内
+    except FileNotFoundError:
+        return []</pre></div></div>
+        <div class="qa-item"><div class="q">  考察点核对</div><div class="a">✅ pathlib.Path 与 with open 读取；❌ 空行判断写成赋值 <code>line = ''</code>；❌ 异常类名拼成 <code>ValueEroor</code>；❌ 擅自加 100 上限，遗漏 &gt;100 的合法预算；⚠️ return 缩进在 try 内。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码</div><div class="a"><pre>from pathlib import Path
+
+def read_valid_budgets(filename):
+    path = Path(filename)
+    new_list = []
+    try:
+        with path.open('r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line == '':          # 双等号比较
+                    continue
+                try:
+                    budget = int(line)
+                except ValueError:      # 异常类名拼写正确
+                    continue
+                if budget &gt;= 0:          # 只要求 ≥0，无上限
+                    new_list.append(budget)
+    except FileNotFoundError:
+        return []
+    return new_list                     # return 放在 try 外、with 之后</pre></div></div>
+<div class="qa-item"><div class="q">  核心（对应错因）</div><div class="a">
+<strong>1. 判断相等用双等号 ==</strong>，单 = 是赋值，写在 if 里会语法错误。<br>
+<strong>2. 异常类名拼写：ValueError</strong>（mvalue 中间大写没有多余 o），拼错则 except 不生效。<br>
+<strong>3. 上限要贴合题意：</strong>题面说"0 及以上的整数"，不能擅自加 100 上限，否则漏掉大于 100 的合法预算。<br>
+<strong>4. return 放 try 外（with 之后）：</strong>文件不存在时 open() 立即抛异常进 except，只有正常走完才 return 列表；缩进进 for 里会提前返回，文件未读完未关闭。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;">
+          <div class="q" style="font-size:15px;">  错题 7（第28题）：更新项目培训进度</div>
+        </div>
+        <div class="qa-item"><div class="q">  题目</div><div class="a">实现函数 <code>update_project_progress(filename, name, task, progress)</code>。JSON 文件保存"姓名—任务进度字典"。要求使用 pathlib.Path 和 json 模块。<br>
+规则：<br>
+① progress 不在 0～100（含边界）时直接返回 False，且不读写文件；<br>
+② 正常情况下读取原有 JSON 数据；文件不存在、内容为空或 JSON 格式损坏时，从空字典开始；<br>
+③ 姓名不存在则新增该姓名；任务已存在则更新，否则新增；<br>
+④ 将完整数据写回原文件，中文不转义并使用 2 个空格缩进；<br>
+⑤ 成功后返回 True。</div></div>
+        <div class="qa-item"><div class="q">  考察点核对</div><div class="a">❌ 参数写死成字符串 <code>Path('filename')</code>；❌ 范围判断写反且无解 <code>not 1&gt;=progress&gt;=100</code>；❌ 读取逻辑乱，把字典当行遍历；❌ 异常类名拼成 <code>Json.JSONDecodeError</code>；❌ <code>return data</code> 过早返回挡住后续；❌ <code>write_text</code> 参数顺序颠倒。</div></div>
+        <div class="qa-item"><div class="q">✅ 正确代码（with open 读写）</div><div class="a"><pre>from pathlib import Path
+import json
+
+def update_project_progress(filename, name, task, progress):
+    path = Path(filename)
+
+    # ① 范围不合法：不读写，直接返回 False
+    if not (0 &lt;= progress &lt;= 100):
+        return False
+
+    # ② 读取；文件不存在或 JSON 损坏时从空字典开始
+    try:
+        with path.open('r', encoding='utf-8') as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = {}
+
+    # ③ 姓名不存在则新增；任务已存在则更新，否则新增
+    if name not in data:
+        data[name] = {}
+    data[name][task] = progress
+
+    # ④ 写回：中文不转义 + 2 空格缩进（数据在前）
+    with path.open('w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    # ⑤
+    return True</pre></div></div>
+        <div class="qa-item"><div class="q">  核心（对应错因）</div><div class="a">
+<strong>1. Path() 放变量：</strong><code>Path(filename)</code> 不能加引号，否则成了真字符串"filename"。<br>
+<strong>2. 范围判断：</strong><code>if not (0 &lt;= progress &lt;= 100): return False</code>，放在读写之前。<br>
+<strong>3. load/dump 配对：</strong>读 <code>json.load(f)</code>、写 <code>json.dump(data, f, ...)</code>；空文件与损坏 JSON 由 <code>except json.JSONDecodeError</code> 兜住。<br>
+<strong>4. 拼写：</strong><code>json.JSONDecodeError</code>，小写 json。<br>
+<strong>5. return 只放最后：</strong>中途 return 会跳过修改与写文件。<br>
+<strong>6. 参数位置：</strong>dump 第1参是数据对象，encoding 用关键字参数。</div></div>
+
+        <div class="qa-item" style="background:#f6faf6;border-bottom:2px solid #1a7f37;margin-top:10px;">
+          <div class="q" style="font-size:15px;">  订正小结</div>
+        </div>
+        <div class="qa-item"><div class="q">  薄弱点</div><div class="a">
+<strong>1. 循环控制：</strong>continue 只跳过剩余代码，索引自增仍需执行，不会死循环。<br>
+<strong>2. 嵌套结构访问：</strong>嵌套字典/列表要逐层取到具体键再运算/赋值。<br>
+<strong>3. JSON 读写：</strong>dumps/write_text 与 loads/read_text 要成对使用，Path 没有 write_note。<br>
+<strong>4. 判断目标：</strong>判断是否已在结果容器中，而非遍历数据本身。<br>
+<strong>5. 继承与方法副作用：</strong>class 需写父类名；返回值前要先完成修改操作。<br>
+<strong>6. 文件读取与返回值位置：</strong>try 只包可能抛异常的代码，return 放在 try 外（with 之后），不能缩进进循环内；文件不存在时 open() 已抛异常进入 except，return 永远轮不到。<br>
+<strong>7. json.load/dump 配对与参数：</strong>读 <code>load</code>、写 <code>dump</code>；<code>path.write_text</code> 数据在前、encoding 用关键字；异常拼成 <code>ValueError</code> / <code>json.JSONDecodeError</code>；return 只放最后。
+        </div></div>
+        <div class="qa-item"><div class="q">  下周计划</div><div class="a">
+- 专项练习 JSON 文件读写与异常处理<br>
+- 重做第24、25、26三题，确保理解判断目标与继承写法<br>
+- 把本章错题再手写一遍，加深印象<br>
+- 重做第27题：掌握异常处理结构与 return 放置位置，多写几个 try/except 用例巩固<br>
+- 重做第28题：json.load/dump 配对、范围判断放最前、return 只放最后
         </div></div>
 
       </div>
