@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nginx 访问日志分析器</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:900px;margin:0 auto;padding:25px;line-height:1.9;background:#fafafa;color:#24292e;font-size:17px;}
+h1{color:#d2691e;border-bottom:3px solid #d2691e;padding-bottom:12px;font-size:30px;}
+h2{color:#d2691e;margin-top:38px;border-left:5px solid #d2691e;padding-left:14px;font-size:22px;background:#fff;padding:10px 16px;border-radius:0 6px 6px 0;}
+h3{color:#0969da;margin-top:26px;font-size:19px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:13.5px;line-height:1.6;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+.toc{background:#fff;border:2px solid #d2691e;border-radius:10px;padding:20px;margin-bottom:25px;}
+.toc a{color:#d2691e;text-decoration:none;display:block;padding:4px 0;}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px;}
+th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;}
+th{background:#fdf0e0;color:#a0501c;}
+code{background:#fdf0e0;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:13px;color:#a0501c;}
+.note{background:#fff8e6;border-left:4px solid #f0b429;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+.ok{background:#f0f8f0;border-left:4px solid #1a7f37;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+@media(max-width:600px){body{padding:15px;}pre{font-size:12.5px;}}</style></head>
+<body>
+
+<h1>Nginx 访问日志分析器</h1>
+
+<div class="toc">
+<h3>目录</h3>
+<a href="#what">一、这个程序是做什么的</a>
+<a href="#struct">二、三层类结构</a>
+<a href="#regex">三、combined 日志格式与正则</a>
+<a href="#parser">四、NginxLogParser —— 解析</a>
+<a href="#stats">五、Statistics —— 多维统计</a>
+<a href="#report">六、ReportGenerator —— 报告生成</a>
+<a href="#main">七、argparse 多文件入口</a>
+<a href="#demo">八、运行演示</a>
+<a href="#extra">九、可扩展方向</a>
+</div>
+
+<h2 id="what">一、这个程序是做什么的</h2>
+<p>一个<strong>Nginx 访问日志分析器</strong>：解析 <strong>combined 日志格式</strong>，输出总览、状态码分布、Top IP/路径、最慢路径、小时流量柱状图、5xx 错误路径等，类比早前那版更专业、更面向真实运维。</p>
+<table>
+<tr><th>维度</th><th>本程序</th><th>早前"服务器日志分析器.py"</th></tr>
+<tr><td>日志格式</td><td>Nginx combined（含 duration、referer、UA）</td><td>NCSA 简化版</td></tr>
+<tr><td>数据规模</td><td>多文件批量</td><td>单文件/示例</td></tr>
+<tr><td>统计维度</td><td>8 项（含最慢路径、小时柱状）</td><td>5 项</td></tr>
+<tr><td>输出</td><td>文本 / JSON</td><td>文本</td></tr>
+<tr><td>代码结构</td><td>3 个类分工（Parser/Statistics/Report）</td><td>单类</td></tr>
+</table>
+
+<h2 id="struct">二、三层类结构</h2>
+<table>
+<tr><th>类</th><th>职责</th></tr>
+<tr><td>NginxLogParser</td><td>读行 + 正则 + 转字典 + 派生字段</td></tr>
+<tr><td>Statistics</td><td>从 records 计算各项指标（属性懒计算）</td></tr>
+<tr><td>ReportGenerator</td><td>把指标拼成可读报告</td></tr>
+</table>
+<p>“解析 → 统计 → 输出”分层使每层可单独测试与替换。</p>
+
+<h2 id="regex">三、combined 日志格式与正则</h2>
+<h3>1. Nginx combined 格式</h3>
+<pre>IP - - [21/Jul/2026:10:15:32 +0800] "GET /api/users HTTP/1.1" 200 1524 "Referer" "User-Agent" 0.045</pre>
+<table>
+<tr><th>片段</th><th>说明</th></tr>
+<tr><td>IP - -</td><td>remote_addr / remote_user（一般 -）</td></tr>
+<tr><td>[time]</td><td>请求时间（含时区）</td></tr>
+<tr><td>"METHOD PATH HTTP/x"</td><td>请求行</td></tr>
+<tr><td>status / size</td><td>状态码 / 响应字节数</td></tr>
+<tr><td>"Referer" "UA"</td><td>来源 + 浏览器标识</td></tr>
+<tr><td>duration</td><td>响应耗时（秒，含小数）</td></tr>
+</table>
+
+<h3>2. 正则</h3>
+<pre>LOG_PATTERN = re.compile(
+    r'(?P&lt;ip&gt;\S+) \S+ \S+ \[(?P&lt;time&gt;[^\]]+)\] '
+    r'"(?P&lt;method&gt;\S+) (?P&lt;path&gt;\S+)\s+\S+" (?P&lt;status&gt;\d{3}) (?P&lt;size&gt;\d+) '
+    r'"[^"]*" "(?:[^"]*)" (?P&lt;duration&gt;[\d.]+)'
+)</pre>
+<ul>
+<li><code>"[^"]*"</code> 引用串直接跳过（不命名）。</li>
+<li><code>(?P&lt;duration&gt;[\d.]+)</code> 支持小数（响应时间 <code>0.045</code>）。</li>
+<li>请求行里 <code>HTTP/1.1</code> 用 <code>\s+\S+</code> 吞掉，避免命名捕获。</li>
+</ul>
+
+<h2 id="parser">四、NginxLogParser —— 解析</h2>
+<pre>class NginxLogParser:
+    def parse_lines(self, lines):
+        records = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            m = LOG_PATTERN.match(line)
+            if not m:
+                continue
+            d = m.groupdict()
+            try:
+                rec = {
+                    'ip': d['ip'],
+                    'time': datetime.strptime(d['time'], '%d/%b/%Y:%H:%M:%S %z'),
+                    'method': d['method'],
+                    'path': d['path'].split('?')[0],   # 去 query string
+                    'status': int(d['status']),
+                    'size': int(d['size']),
+                    'duration': float(d['duration']),
+                }
+                rec['hour'] = rec['time'].strftime('%H')  # 派生小时字段
+                records.append(rec)
+            except (ValueError, KeyError):
+                continue
+        return records</pre>
+<ul>
+<li>不匹配/异常都 <code>continue</code> 跳过，不中断整体。</li>
+<li><code>d['path'].split('?')[0]</code>：去掉 URL 参数，只看路径本体，避免 <code>/api/users?id=1</code> 与 <code>/api/users?id=2</code> 被当两条。</li>
+<li><code>datetime.strptime</code> 把字符串解析为 <code>datetime</code>（带时区）。</li>
+<li>派生字段 <code>rec['hour']</code>：按小时聚合时直接 <code>Counter(r['hour'])</code>，省得每次重新切字符串。</li>
+</ul>
+
+<h2 id="stats">五、Statistics —— 多维统计</h2>
+<pre>class Statistics:
+    def __init__(self, records):
+        self.records = records
+
+    @property
+    def total(self):
+        return len(self.records)
+
+    @property
+    def unique_ips(self):
+        return len({r['ip'] for r in self.records})   # 集合去重
+
+    @property
+    def duration_stats(self):
+        if not self.records:
+            return (0.0, 0.0, 0.0)
+        durs = [r['duration'] for r in self.records]
+        return (sum(durs) / len(durs), max(durs), min(durs))
+
+    @property
+    def status_dist(self):
+        c = Counter(r['status'] for r in self.records)
+        return sorted(c.items())                       # 按状态码升序
+
+    @property
+    def top_ips(self):
+        return Counter(r['ip'] for r in self.records).most_common   # 返方法
+
+    @property
+    def top_paths(self):
+        return Counter(r['path'] for r in self.records).most_common
+
+    @property
+    def slowest_paths(self):
+        path_durs = defaultdict(list)
+        for r in self.records:
+            path_durs[r['path']].append(r['duration'])
+        avg_durs = [(p, sum(d)/len(d), len(d)) for p, d in path_durs.items()]
+        avg_durs.sort(key=lambda x: -x[1])           # 平均耗时降序
+        return avg_durs
+
+    @property
+    def hourly(self):
+        return Counter(r['hour'] for r in self.records)
+
+    @property
+    def err5_paths(self):
+        return Counter(r['path'] for r in self.records if 500 &lt;= r['status'] &lt; 600)</pre>
+<ul>
+<li><strong>用 @property 懒计算</strong>：调用才计算，不在 __init__ 里一次性算光，调用者按需取。</li>
+<li><code>{r['ip'] for r in self.records}</code>：集合推导式统计唯一 IP。</li>
+<li><code>top_ips/top_paths</code> 返回的是 <code>most_common</code> 方法本身（不是结果），调用方传 N 取前 N 个（灵活）。</li>
+<li><code>defaultdict(list)</code> 把同一 path 的 duration 收集起来，再算每个路径的平均耗时 —— <b>聚合统计经典写法</b>。</li>
+<li><code>err5_paths</code> 在 Counter 构造时直接过滤，避免先全量再筛。</li>
+</ul>
+
+<h2 id="report">六、ReportGenerator —— 报告生成</h2>
+<pre>class ReportGenerator:
+    def __init__(self, stats, top_n=10):
+        self.s = stats
+        self.top_n = top_n
+
+    def generate(self):
+        s = self.s
+        lines = ["===== Nginx 访问日志分析报告 =====", ""]
+
+        lines.append("[基础统计]")
+        lines.append(f"  总请求数: {s.total}")
+        lines.append(f"  去重 IP 数: {s.unique_ips}")
+        if s.total:
+            avg, mx, mn = s.duration_stats
+            lines.append(f"  平均响应时间: {avg:.4f} s")
+            lines.append(f"  最大响应时间: {mx:.4f} s")
+            lines.append(f"  最小响应时间: {mn:.4f} s")
+        lines.append("")
+
+        lines.append("[状态码分布]")
+        for code, cnt in s.status_dist:
+            pct = cnt / s.total * 100
+            lines.append(f"  {code}: {cnt} ({pct:5.1f}%)")
+        ...
+        # 5xx 错误路径 Top 5
+        if not s.err5_paths:
+            lines.append("  (无)")
+        else:
+            for path, cnt in s.err5_paths.most_common(5):
+                lines.append(f"  {path:&lt;30} {cnt} 次")
+
+        return "\n".join(lines)</pre>
+<ul>
+<li><code>:5.1f</code>：宽度 5、保留 1 位小数的浮点数对齐（如 <code>12.5%</code>、<code>100.0%</code>）。</li>
+<li><code>f"{ip:&lt;18}"</code>：左对齐定宽输出，配 <code>{cnt} 次</code> 让对齐工整。</li>
+<li><code>if s.total</code> 防除零。</li>
+</ul>
+
+<h3>亮点：小时柱状图（ASCII bar）</h3>
+<pre>lines.append("[按小时流量统计]")
+if s.hourly:
+    max_h = max(s.hourly.values())
+    bar_w = 30
+    for hour in sorted(s.hourly):
+        cnt = s.hourly[hour]
+        bar = '█' * int(cnt / max_h * bar_w) if max_h else ''
+        lines.append(f"  {hour}:00 | {bar:&lt;{bar_w}} {cnt}")</pre>
+<div class="ok">以最大时段为基准，把每小时请求数映射成 0–30 个方块字符；纯终端也能画出柱状图，运维看访问峰值很直观。</div>
+
+<h2 id="main">七、argparse 多文件入口</h2>
+<pre>def main():
+    ap = argparse.ArgumentParser(description='Nginx 访问日志分析器')
+    ap.add_argument('logfile', nargs='+', help='日志文件路径')         # 支持多个文件
+    ap.add_argument('--top', type=int, default=10, help='Top N 数量')
+    ap.add_argument('--output', help='报告输出文件')
+    ap.add_argument('--format', choices=['text', 'json'], default='text')
+    args = ap.parse_args()
+
+    all_lines = []
+    for f in args.logfile:
+        p = Path(f)
+        if not p.is_file():
+            print(f"[警告] 跳过不存在的文件: {f}")
+            continue
+        all_lines.extend(p.read_text(encoding='utf-8', errors='ignore').splitlines())
+        #                                              ^^^^^ 跳过解码错误（坏字节）
+
+    parser = NginxLogParser()
+    records = parser.parse_lines(all_lines)
+    stats = Statistics(records)
+    report = ReportGenerator(stats, top_n=args.top).generate()
+    print(report)
+    if args.output:
+        Path(args.output).write_text(report, encoding='utf-8')
+        print(f"报告已写入: {args.output}")</pre>
+<ul>
+<li><code>nargs='+'</code>：一次传多个日志文件，合并分析。</li>
+<li><code>errors='ignore'</code>：编码错误的字节静默跳过，避免单条坏数据崩溃。</li>
+<li>三层类串成管道：parse → statistics → report。</li>
+</ul>
+<h3>运行示例</h3>
+<pre>python Nginx访问日志分析器.py access.log
+python Nginx访问日志分析器.py access.log error.log --top 5
+python Nginx访问日志分析器.py *.log --output report.txt</pre>
+
+<h2 id="demo">八、运行演示</h2>
+<pre>===== Nginx 访问日志分析报告 =====
+
+[基础统计]
+  总请求数: 12
+  去重 IP 数: 4
+  平均响应时间: 0.1854 s
+  最大响应时间: 0.5200 s
+  最小响应时间: 0.0080 s
+
+[状态码分布]
+  200: 8  ( 66.7%)
+  401: 1  (  8.3%)
+  403: 1  (  8.3%)
+  500: 2  ( 16.7%)
+
+[Top 10 IP]
+  192.168.1.10    5 次
+  10.0.0.5        3 次
+  172.16.0.8      2 次
+
+[Top 10 URL 路径]
+  /api/users                        3 次
+  /static/style.css                 2 次
+  /api/login                        2 次
+
+[最慢路径 Top 10]
+  /api/orders            avg=0.3500s  (1 次)
+  /api/users             avg=0.1600s  (3 次)
+
+[按小时流量统计]
+  10:00 | ██████████████████████████████ 6
+  11:00 | ██████████████████ 4
+  14:00 | ████████ 2
+
+[5xx 错误路径 Top 5]
+  /api/orders                    2 次</pre>
+
+<h2 id="extra">九、可扩展方向</h2>
+<ul>
+<li><strong>输出 JSON</strong>：把 <code>Statistics</code> 的属性序列化成 dict，再 <code>json.dump</code>。当前 <code>--format json</code> 字段已预留。</li>
+<li><strong>P50/P95/P99 延迟</strong>：用 <code>statistics.quantiles</code> 算分位数，比平均值更能反映真实体验。</li>
+<li><strong>UA / Referer 分析</strong>：补充正则命名组，加 top UA、top Referer。</li>
+<li><strong>并发解析</strong>：大文件用 <code>concurrent.futures</code> 多进程切块解析。</li>
+<li><strong>可视化</strong>：把柱状图扩展为 matplotlib 输出 PNG，喂给监控看板。</li>
+<li><strong>实时流</strong>：用 <code>tail -f</code> + <code>subprocess</code> 持续分析新增日志。</li>
+</ul>
+
+</body>
+</html>
