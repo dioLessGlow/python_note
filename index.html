@@ -18,7 +18,14 @@
     /* 内容框架：居中加载，保持原样式 */
     .container { max-width: 900px; margin: 0 auto; }
     .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     .kg-iframe { width: 100%; height: 80vh; border: none; }
     .loading { color: #888; padding: 20px; text-align: center; }
@@ -174,7 +181,7 @@
     /* 展开的导航面板：出现在圆点左侧；限高防超出屏幕，内部可滚动 */
     .nav-panel {
       position: absolute;
-      top: 1.5rem; right: calc(1.5rem + 280px);
+      top: 1.5rem; right: calc(1.5rem + 220px);
       width: 220px;
       max-height: calc(100vh - 3rem);
       overflow-y: auto;
@@ -188,7 +195,7 @@
     .nav-slider {
       transition: top 200ms cubic-bezier(0, 0, 0.2, 1);
     }
-    .nav-item { height: 44px; }
+    .nav-item { height: 35px; }
 
     /* 面板展开时菜单项依次出现 */
     .nav-panel li {
@@ -206,6 +213,9 @@
     .nav-panel li:nth-child(9) { animation-delay: 320ms; }
     .nav-panel li:nth-child(10) { animation-delay: 360ms; }
     .nav-panel li:nth-child(11) { animation-delay: 400ms; }
+    .nav-panel li:nth-child(12) { animation-delay: 440ms; }
+    .nav-panel li:nth-child(13) { animation-delay: 480ms; }
+    .nav-panel li:nth-child(14) { animation-delay: 520ms; }
     @keyframes navItemIn {
       from { opacity: 0; transform: translateX(14px); }
       to   { opacity: 1; transform: translateX(0); }
@@ -218,7 +228,7 @@
 
     @media (max-width: 600px) {
       .fab-dot-wrap { top: 1rem; right: 1rem; }
-      .nav-panel { top: 1rem; right: calc(1rem + 280px); width: 200px; }
+      .nav-panel { top: 1rem; right: calc(1rem + 220px); width: 200px; }
     }
   </style>
 </head>
@@ -246,6 +256,9 @@
       <div class="tab-content" id="tab9"><p class="loading">加载中...</p></div>
       <div class="tab-content" id="tab10"><p class="loading">加载中...</p></div>
       <div class="tab-content" id="tab11"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab12"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab13"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab14"><p class="loading">加载中...</p></div>
     </div>
 
     <p class="footer">
@@ -275,9 +288,9 @@
         </svg>
       </button>
       <!-- 滑块背景：panel padding 0.5rem + ul mt-8 2rem = 2.5rem，与第一项对齐 -->
-      <span class="nav-slider absolute left-2 right-2 h-11 bg-indigo-50 rounded-lg shadow-sm"
-            :style="{ top: `calc(3rem + 44px * ${selected})` }"></span>
-      <ul class="relative mt-10">
+      <span class="nav-slider absolute left-2 right-2 h-9 bg-indigo-50 rounded-lg shadow-sm"
+            :style="{ top: `calc(2.5rem + 35px * ${selected})` }"></span>
+      <ul class="relative mt-8">
         <li v-for="(item, idx) in items" :key="idx">
           <button type="button" @click="select(idx)" :aria-selected="selected===idx"
                   class="nav-item px-3 w-full flex items-center rounded-lg focus:outline-none"
@@ -306,10 +319,13 @@
       { label: 'JSON处理',     icon: '<path d="M5 3h2v18H5zM17 3h2v18h-2z M9 7h6v2H9zM9 11h6v2H9zM9 15h6v2H9z"/>' },
       { label: '爬虫数据分析', icon: '<path d="M12 2a10 10 0 100 20 10 10 0 000-20z M2 12h20M12 2c4 4 4 16 0 20M12 2c-4 4-4 16 0 20"/>' },
       { label: '日志分析告警', icon: '<path d="M4 4h16v16H4z M12 8v5M12 16v.01M9 12h6"/>' },
+      { label: 'JSON差异对比', icon: '<path d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2z M8 9h8M8 13h8M8 17h5"/>' },
+      { label: '任务管理器', icon: '<path d="M5 3h4v4H5zM15 3h4v4h-4zM5 13h4v4H5zM15 13h4v4h-4zM9 5h6M9 15h6"/>' },
+      { label: 'To-Do列表', icon: '<path d="M4 4h16v16H4z M8 8h8M8 12h8M8 16h5 M5 7l2 2 3-3"/>' },
     ];
 
-    const files = ['qa.html', 'kb.html', 'ex.html', 'zk.html', 'pitfalls.html', 'knowledge.html', 'convert.html', 'json.html', 'crawler.html', 'logging.html'];
-    const targets = ['tab1', 'tab2', 'tab4', 'tab5', 'tab6', 'tab7', 'tab8', 'tab9', 'tab10', 'tab11'];
+    const files = ['qa.html', 'kb.html', 'ex.html', 'zk.html', 'pitfalls.html', 'knowledge.html', 'convert.html', 'json.html', 'crawler.html', 'logging.html', 'json_diff.html', 'task_cli.html', 'todo_list.html'];
+    const targets = ['tab1', 'tab2', 'tab4', 'tab5', 'tab6', 'tab7', 'tab8', 'tab9', 'tab10', 'tab11', 'tab12', 'tab13', 'tab14'];
 
     new Vue({
       el: '#fab',
@@ -328,6 +344,8 @@
             const iframe = document.getElementById('kg-iframe');
             if (!iframe.getAttribute('src')) iframe.src = 'knowledge-graph.html';
           }
+          // 切换到新 tab 时回到页面顶部
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
     });

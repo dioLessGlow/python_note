@@ -37,6 +37,7 @@ code{background:#fdeaea;padding:1px 5px;border-radius:3px;font-family:Consolas,m
 <a href="#flow">十一、完整数据流转</a>
 <a href="#design">十二、关键设计思想</a>
 <a href="#run">十三、运行效果预览</a>
+<a href="#ncsa">十四、番外：NCSA 格式分析器（服务器日志分析器.py）</a>
 </div>
 
 <h2 id="what">一、这个程序是做什么的</h2>
@@ -359,6 +360,117 @@ python 服务器日志分析与告警系统.py access.log  # 用真实文件</pr
 ⚠️  IP 192.168.1.10 请求 3 次，达到上限 3
 ⚠️  IP 172.16.0.88 请求 3 次，达到上限 3
 ⚠️  平均响应时间 1129.50ms 超过阈值 1000ms</pre>
+
+<h2 id="ncsa">十四、番外：NCSA 格式分析器（服务器日志分析器.py）</h2>
+<p>上面用的是自定义格式（IP+时间戳+带引号请求）。这一版是更标准的 <strong>NCSA / Common Log 格式</strong>（Apache 默认），并演示 <code>datetime</code> 时间解析与 emoji 报告。</p>
+
+<h3>1. 日志格式与正则</h3>
+<pre>IP - - [21/Jul/2026:10:15:32 +0800] "GET /api/users HTTP/1.1" 200 1524
+
+LOG_PATTERN = re.compile(
+    r'(?P&lt;ip&gt;\S+) \S+ \S+ \[(?P&lt;time&gt;[^\]]+)\] '
+    r'"(?P&lt;method&gt;\S+) (?P&lt;path&gt;\S+) \S+" (?P&lt;status&gt;\d{3}) (?P&lt;size&gt;\d+)'
+)</pre>
+<table>
+<tr><th>片段</th><th>含义</th><th>匹配</th></tr>
+<tr><td>(?P&lt;ip&gt;\S+)</td><td>IP</td><td>192.168.1.10</td></tr>
+<tr><td>\S+ \S+</td><td>remote logname、auth user（通常为 -）</td><td>- -</td></tr>
+<tr><td>\[(?P&lt;time&gt;[^\]]+)\]</td><td>中括号内的时间戳</td><td>[21/Jul/2026:10:15:32 +0800]</td></tr>
+<tr><td>"...HTTP/1.1"</td><td>请求行带协议版本（\S+ 吞掉）</td><td>"GET /api/users HTTP/1.1"</td></tr>
+<tr><td>(?P&lt;status&gt;\d{3})</td><td>三位状态码</td><td>200</td></tr>
+<tr><td>(?P&lt;size&gt;\d+)</td><td>响应字节数</td><td>1524</td></tr>
+</table>
+<p>与自定义版不同：时间带方括号（<code>\[[^\]]+\]</code>），请求行以 <code>\S+</code> 吞掉 HTTP 版本，状态码限定三位 <code>\d{3}</code>。</p>
+
+<h3>2. 时间解析 parse_log_line</h3>
+<pre>LOG_PATTERN = re.compile(...)  # 模块级编译一次，复用
+
+def parse_log_line(line):
+    m = LOG_PATTERN.match(line.strip())
+    if not m:
+        return None                              # 匹配失败 → None
+    d = m.groupdict()
+    d['status'] = int(d['status'])               # 字符串转 int
+    d['size'] = int(d['size'])
+    try:
+        d['time_obj'] = datetime.strptime(d['time'], '%d/%b/%Y:%H:%M:%S %z')
+    except ValueError:
+        return None                              # 时间格式错也跳过
+    return d</pre>
+<ul>
+<li><code>datetime.strptime(str, 格式)</code> 把字符串解析成 <code>datetime</code> 对象。</li>
+<li>格式码：<code>%d</code>日、<code>%b</code>月缩写(Jul)、<code>%Y</code>年、<code>%H:%M:%S</code>时分秒、<code>%z</code>时区(+0800)。</li>
+<li>解析失败抛 <code>ValueError</code>，捕获后返回 None，纳入容错。</li>
+</ul>
+
+<h3>3. 类与报告</h3>
+<pre>class LogAnalyzer:
+    def __init__(self, source=None):
+        self.entries = []      # 解析出的记录
+        self.source = source
+    def load(self):            # 逐行解析进 self.entries
+    def _read_lines(self):     # 同前面：文件或内置示例
+    def report(self):          # 生成报告
+        total = len(entries)
+        total_bytes = sum(e['size'] for e in entries)
+        times = [e['time_obj'] for e in entries]
+        time_min, time_max = min(times), max(times)      # datetime 可直接比大小
+
+        status_cnt  = Counter(e['status'] for e in entries)
+        method_cnt  = Counter(e['method'] for e in entries)
+        ip_cnt      = Counter(e['ip'] for e in entries)
+        path_cnt    = Counter(e['path'] for e in entries)
+        anomalies   = [e for e in entries if e['status'] >= 400]</pre>
+<p>新增亮点：</p>
+<ul>
+<li><code>min/max(times)</code>：<code>datetime</code> 对象支持比较，直接求整段日志的时间范围。</li>
+<li><code>{total_bytes:,}</code>：千分位格式化输出大数。</li>
+<li><code>sorted(method_cnt.items(), key=lambda x: -x[1])</code>：按次数降序（负号反转）。</li>
+<li><code>anomalies = [e if e['status'] &gt;= 400]</code>：筛出 4xx/5xx 异常请求。</li>
+<li>用了 <code>%Y-%m-%d %H:%M:%S</code> / <code>%H:%M:%S</code> 二次格式化时间，<code>f"{ip:&lt;15}"</code> 左对齐对齐列。</li>
+</ul>
+
+<h3>4. 报告输出示例</h3>
+<pre>========== 日志分析报告 ==========
+📊 总览
+  总请求数: 6
+  总流量:   12,105 字节
+  时间范围: 2026-07-21 10:15:32 ~ 10:17:00
+
+📈 状态码分布
+  200: 3 (50.0%)
+  401: 1 (16.7%)
+  403: 1 (16.7%)
+  500: 1 (16.7%)
+
+🔀 请求方法统计
+  GET      4
+  POST     2
+
+🏆 Top 3 IP
+  192.168.1.10  → 2 次
+  10.0.0.5      → 2 次
+
+🔗 Top 3 路径
+  /api/login     → 2 次
+  /api/users     → 1 次
+  /static/style.css → 1 次
+
+⚠️ 异常请求 (4xx/5xx)
+  [10:16:10]  10.0.0.5     POST   /api/login     → 401
+  [10:16:05]  192.168.1.10 GET    /api/orders    → 500
+  [10:17:13]  192.168.1.20 DELETE /api/users/3   → 403
+===================================</pre>
+
+<h3>5. 与自定义格式版的对比</h3>
+<table>
+<tr><th>维度</th><th>自定义版</th><th>NCSA 版</th></tr>
+<tr><td>时间戳</td><td>ISO 字符串(2026-07-23T…)</td><td>方括号[21/Jul/2026…+0800] + datetime 解析</td></tr>
+<tr><td>请求行</td><td>方法 URL 内部状态</td><td>方法 路径 HTTP/版本</td></tr>
+<tr><td>字段</td><td>含耗时(ms)、可算均值</td><td>无耗时，看重方法/Top/异常</td></tr>
+<tr><td>报告风格</td><td>纯文本 [章节]</td><td>emoji + 千分位 + 时间范围 + 异常清单</td></tr>
+<tr><td>核心技巧</td><td>groupdict / Counter / most_common</td><td>➕ datetime.strptime、min/max、lambda 排序、筛选</td></tr>
+</table>
 
 </body>
 </html>

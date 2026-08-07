@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>To-Do List 命令行任务管理器</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:900px;margin:0 auto;padding:25px;line-height:1.9;background:#fafafa;color:#24292e;font-size:17px;}
+h1{color:#1a7f37;border-bottom:3px solid #1a7f37;padding-bottom:12px;font-size:30px;}
+h2{color:#1a7f37;margin-top:38px;border-left:5px solid #1a7f37;padding-left:14px;font-size:22px;background:#fff;padding:10px 16px;border-radius:0 6px 6px 0;}
+h3{color:#0969da;margin-top:26px;font-size:19px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:13.5px;line-height:1.6;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+.toc{background:#fff;border:2px solid #1a7feb;border-radius:10px;padding:20px;margin-bottom:25px;}
+.toc a{color:#1a7feb;text-decoration:none;display:block;padding:4px 0;}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px;}
+th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;}
+th{background:#eaf3ff;color:#1a7feb;}
+code{background:#eaf3ff;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:13px;color:#1a7feb;}
+.note{background:#fff8e6;border-left:4px solid #f0b429;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+.ok{background:#f0f8f0;border-left:4px solid #1a7f37;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+@media(max-width:600px){body{padding:15px;}pre{font-size:12.5px;}}</style></head>
+<body>
+
+<h1>To-Do List 命令行任务管理器</h1>
+
+<div class="toc">
+<h3>目录</h3>
+<a href="#what">一、这个程序是做什么的</a>
+<a href="#config">二、配置：状态、列宽、Webhook</a>
+<a href="#tools">三、工具函数：宽字符对齐与数据读写</a>
+<a href="#display">四、显示：中文对齐表格</a>
+<a href="#crud">五、核心功能增删改查</a>
+<a href="#sort">六、排序与筛选</a>
+<a href="#remind">七、截止提醒（WPS Webhook）</a>
+<a href="#main">八、主程序循环</a>
+<a href="#model">九、数据模型与文档对照</a>
+<a href="#extra">十、与 Task Manager CLI 对比及扩展</a>
+</div>
+
+<h2 id="what">一、这个程序是做什么的</h2>
+<p>一个<strong>中文交互式命令行任务管理器</strong>：数据显示为对齐表格，支持任务的增删改查、多方式排序筛选、截止前 1 小时自动/手动提醒（发到 WPS 群）。特点是<b>中文终端对齐</b>与<b>Webhook 通知</b>。</p>
+<table>
+<tr><th>菜单</th><th>功能</th></tr>
+<tr><td>1</td><td>添加新任务</td></tr>
+<tr><td>2</td><td>查看所有任务（按紧急程度排序）</td></tr>
+<tr><td>3</td><td>修改任务（内容/截止/状态/优先级）</td></tr>
+<tr><td>4</td><td>删除任务（带确认）</td></tr>
+<tr><td>5</td><td>查看今日任务</td></tr>
+<tr><td>6</td><td>按状态排序查看</td></tr>
+<tr><td>7</td><td>按截止日期排序（升/降序）</td></tr>
+<tr><td>8</td><td>手动检查并发送截止提醒</td></tr>
+<tr><td>0</td><td>保存并退出</td></tr>
+</table>
+
+<h2 id="config">二、配置：环境、列宽、Webhook</h2>
+<pre># 1) Windows 控制台默认 GBK，无法输出 emoji，强制 UTF-8
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
+# 2) 尝试导入 requests（WPS 群机器人提醒需要）
+try:
+    import requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
+
+BASE_DIR = Path(__file__).parent
+DATA_FILE = BASE_DIR / "tasks.json"
+WEBHOOK_URL = "https://xz.wps.cn/api/v1/webhook/send?key=xxxxxxxx"   # 真实 key 已打码
+
+STATUSES = ["未开始", "进行中", "已完成", "推迟"]
+STATUS_ORDER = {"推迟": 0, "未开始": 1, "进行中": 2, "已完成": 3}   # 推迟排最前
+
+# ANSI 颜色：推迟/逾期任务标红
+if sys.platform == "win32":
+    os.system("")   # 启用 Windows 终端 ANSI 转义序列
+RED = "\033[91m"; RESET = "\033[0m"
+
+# 显示列宽
+COL_WIDTHS = {"id":10, "create_time":19, "deadline":19, "task":22, "status":8, "priority":6}</pre>
+<ul>
+<li><code>sys.stdout.reconfigure(encoding="utf-8")</code>：解决 Windows cmd 中文/emoji 乱码。</li>
+<li><code>os.system("")</code>：让 PowerShell/cmd 启用 ANSI 颜色转义，实现红色高亮。</li>
+<li><code>STATUS_ORDER</code>：为“状态”定制排序优先级（推迟最高，放最前）。</li>
+<li>Webhook 里含真实 key，建议用环境变量隔离，文档已打码。</li>
+</ul>
+
+<h2 id="utils">三、显示函数：中文对齐与数据读写</h2>
+<h3>1. 让中英文占位一致的对齐工具</h3>
+<pre>def display_width(s):                 # 中文占2，英文占1
+    width = 0
+    for ch in str(s):
+        if '\u4e00' <= ch <= '\u9fff' or '\u3000' <= ch <= '\u303f' or '\uff00' <= ch <= '\uffef':
+            width += 2
+        else:
+            width += 1
+    return width
+
+def pad_to_width(s, target_width):
+    s = str(s)
+    current = display_width(s)
+    if current > target_width:            # 超长 → 截断并加 "..."
+        result, w = "", 0
+        for ch in s:
+            cw = 2 if <is_cjk(ch)> else 1
+            if w + cw > target_width - 3:
+                result += "..."; break
+            result += ch; w += cw
+        return result + " " * (target_width - display_width(result))
+    return s + " " * (target_width - current)   # 不足 → 补齐空格</pre>
+<div class="note">⚠️ <strong>关键点</strong>：终端里英文/数字占 1 列、中文占 2 列。若只用 <code>f"{x:&lt;22}"</code>，含中文时列会歪。此工具按<b>显示宽度</b>计算并补齐，保证中文列表对齐。</div>
+
+<h3>2. 数据读写</h3>
+<pre>def load_data():
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError):
+        print("⚠️ 数据文件损坏或不存在，已创建新文件")
+        data = {"tasks": [], "next_id": 1}
+        save_data(data); return data
+
+def save_data(data):
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def generate_task_id(next_id):
+    return f"task_{next_id:03d}"     # task_001, task_002 ...
+
+def parse_datetime(dt_str):
+    try:
+        return datetime.strptime(dt_str.strip(), "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return None                  # 格式错返回 None，调用方兜底</pre>
+<p><code>:03d</code> 零填充三位数字生成 ID；文件读取用 with+json，读写都规定 utf-8。</p>
+
+<h2 id="display">四、显示：中文对齐表格</h2>
+<pre>def print_task_header():
+    header = (
+        pad_to_width("ID", COL_WIDTHS["id"]) + "  " +
+        pad_to_width("创建时间", COL_WIDTHS["create_time"]) + "  " +
+        pad_to_width("截止时间", COL_WIDTHS["deadline"]) + "  " +
+        pad_to_width("任务内容", COL_WIDTHS["task"]) + "  " +
+        pad_to_width("状态", COL_WIDTHS["status"]) + "  " +
+        pad_to_width("优先级", COL_WIDTHS["priority"])
+    )
+    print(header)
+    print_separator()      # 一条横线
+
+def print_task(task):
+    line = (pad_to_width(task['id'], ...) + "  " + ...)
+    if task['status'] == "推迟":
+        print(RED + line + RESET)    # 推迟任务整行标红
+    else:
+        print(line)</pre>
+<p>列之间用两空格拼接，每列用 <code>pad_to_width</code> 固定显示宽度，超长截断成 <code>...</code>。推迟状态整行红色高亮。</p>
+
+<h2 id="crud">五、增删改查（CRUD）</h2>
+<h3>1. 添加任务（多段输入校验）</h3>
+<pre>def add_task():
+    task_content = input("请输入任务内容（输入 q 取消添加）：").strip()
+    if task_content.lower() == "q": return
+
+    # 默认截止时间：今天 18:00
+    default_deadline = datetime.now().replace(hour=18, minute=0, second=0, microsecond=0)
+
+    while True:                              # 无线循环直到合法日期
+        deadline_input = input(f"请输入截止时间（默认 {default_deadline_str}，回车使用，q 取消）：")
+        if deadline_input.lower() == "q": return
+        if deadline_input == "": deadline_str = default_deadline_str; break
+        if parse_datetime(deadline_input): deadline_str = deadline_input; break
+        print("❌ 日期格式错误，请按 YYYY-MM-DD HH:MM:SS 输入")
+
+    while True:                              # 优先级必须是正整数≥1
+        priority_str = input("请输入优先级（1=最高，q 取消）：")
+        if priority_str.isdigit() and int(priority_str) >= 1:
+            priority = int(priority_str); break
+        print("❌ 优先级必须是正整数")
+    # ... 选状态（1-4） ...
+    data = load_data()
+    new_task = {"id": generate_task_id(data["next_id"]), "create_time": format_now(),
+                "deadline": deadline_str, "task": task_content,
+                "status": status, "priority": priority}
+    data["tasks"].append(new_task); data["next_id"] += 1
+    save_data(data)</pre>
+<ul>
+<li>"输入 q 取消"贯穿全程，用户体验好。</li>
+<li>每段 <code>while True</code> 循环校验，非法重输直至合法。</li>
+<li><code>.isdigit()</code> 验证纯数字，避免 <code>int()</code> 抛异常。</li>
+</ul>
+
+<h3>2. 修改任务（按字段逐项改）</h3>
+<pre>def modify_task():
+    task_id = input("请输入要修改的任务ID（q 返回）：")
+    task = next((t for t in data["tasks"] if t["id"] == task_id), None)
+    if not task:
+        print(f"❌ 未找到任务 {task_id}"); return
+    while True:
+        print_task_header(); print_task(task)     # 先展示当前信息
+        choice = input_with_prompt("请选择要修改的字段：")
+        if choice == "0": print("💾 已保存修改并退出"); break
+        elif choice.lower() == "q": return
+        elif choice == "1": task["task"] = input_with_prompt("新的任务内容：")
+        elif choice == "2": ...            # 改截止（同 add 的日期校验）
+        elif choice == "3": task["status"] = ...   # 选新状态
+        elif choice == "4": task["priority"] = ... # 校验正整数
+        else: print("❌ 请输入 0-4"); continue
+        save_data(data)     # 每次修改即时保存
+        print("✅ 已更新")</pre>
+
+<h3>3. 删除任务（带确认）</h3>
+<pre>def delete_task():
+    ...找到 task 后...
+    print_task_header(); print_task(task)      # 先展示将删内容
+    confirm = input("确认删除吗？（y=删除 / n=取消 / q=返回）：").strip().lower()
+    if confirm == 'y':
+        data["tasks"].remove(task); save_data(data)
+        print(f"✅ 任务 {task_id} 已删除")</pre>
+<p>删除前先展示目标并二次确认，<code>list.remove</code> 按对象移除。</p>
+
+<h2 id="sort">六、排序与筛选</h2>
+<pre># 默认：按紧急程度（推迟最高 → 优先级 → 截止日期）
+sorted(tasks, key=lambda x: (0 if x["status"]=="推迟" else 1, x["priority"], x["deadline"]))
+
+# 按状态顺序（STATUS_ORDER：推迟 0，未开始 1，进行中 2，已完成 3）
+sorted(tasks, key=lambda x: STATUS_ORDER.get(x["status"], 99))
+
+# 按截止日期（升/降序）
+sorted(tasks, key=lambda x: x["deadline"], reverse=reverse)
+
+# 今日任务：截止日期字符串以今天开头
+today = datetime.now().strftime("%Y-%m-%d")
+[t for t in data["tasks"] if t["deadline"].startswith(today)]</pre>
+<ul>
+<li>紧急程度元组：同一优先级内再按截止日期（近的在前）。</li>
+<li>按状态排序 <code>key=STATUS_ORDER.get(status, 99)</code>，未知状态落最后。</li>
+<li>"今日"用 <code>YYYY-MM-DD</code> 前缀匹配截止字段。</li>
+</ul>
+
+<h2 id="remind">七、截止提醒（WPS Webhook）</h2>
+<pre>def send_webhook_message(content):
+    if not HAS_REQUESTS:
+        print("⚠️ 未安装 requests 库，pip install requests"); return False
+    headers = {"Content-Type": "application/json"}
+    data = {"msgtype": "text", "text": {"content": content}}
+    try:
+        response = requests.post(WEBHOOK_URL, headers=headers,
+                                 data=json.dumps(data, ensure_ascii=False).encode('utf-8'),
+                                 timeout=10)
+        result = response.json()
+        if response.status_code == 200 and (
+            result.get("errcode") in (0, "0") or result.get("success") is True
+            or result.get("result") == "ok"):
+            return True
+        print(f"⚠️ Webhook 返回：{result}"); return False
+    except Exception as e:
+        print(f"❌ 发送失败：{e}"); return False
+
+def check_reminders():      # 检查截止前1小时的任务
+    now = datetime.now()
+    one_hour_later = now + timedelta(hours=1)
+    for task in data["tasks"]:
+        if task["status"] not in ["未开始", "进行中"]: continue
+        deadline = parse_datetime(task["deadline"])
+        if not deadline: continue
+        if now <= deadline <= one_hour_later:      # 恰好落在未来1小时内
+            reminders.append(task)
+    # 逐条构造文本并发送</pre>
+<div class="ok">触发时机是 <code>now &lt;= deadline &lt;= now+1h</code>；只有“未开始/进行中”才提醒（已完成/推迟不提醒）。发送成功判定兼容多种 Webhook 返回格式（errcode/code/success/result）。</div>
+<h3>启动自动处理：逾期 → 推迟</h3>
+<pre>def auto_mark_overdue():
+    now = datetime.now()
+    for task in data["tasks"]:
+        if task["status"] in ["未开始", "进行中"]:
+            deadline = parse_datetime(task["deadline"])
+            if deadline and deadline < now:
+                task["status"] = "推迟"      # 逾期未完成，自动归为"推迟"
+    if changed: save_data(data)      # 有改动才写盘</pre>
+
+<h2 id="main">八、主程序循环</h2>
+<pre>def main():
+    init_data_file()
+    auto_mark_overdue()                      # 启动先自动处理逾期
+    if HAS_REQUESTS:
+        check_reminders()                    # 启动自动检查提醒
+    else:
+        print("⚠️ 未安装 requests，提醒不可用，pip install requests")
+    while True:
+        print_menu()
+        choice = input("请选择操作：").strip()
+        if choice == "1": add_task()
+        elif choice == "2": list_all_tasks()
+        ...
+        elif choice == "0":
+            print("💾 数据已保存，再见!"); break
+        else: print("❌ 无效选项，请重新选择"); continue
+        wait_return()     # 每步操作后按回车返回菜单</pre>
+<p><code>while True</code> 主循环 + <code>if-elif</code> 分发；<code>wait_return()</code> 让用户看完结果再回菜单。</p>
+
+<h2 id="model">九、数据模型与字段对照</h2>
+<pre>{
+  "id": "task_001", "create_time": "2025-07-24 10:00:00",
+  "deadline": "2025-07-24 18:00:00", "task": "完成基础数据类型学习",
+  "status": "进行中", "priority": 1
+}</pre>
+<table>
+<tr><th>字段</th><th>类型</th><th>约束</th></tr>
+<tr><td>id</td><td>字符串</td><td>唯一，<code>task_{NNN:03d}</code></td></tr>
+<tr><td>create_time</td><td>字符串</td><td>格式 YYYY-MM-DD HH:MM:SS</td></tr>
+<tr><td>deadline</td><td>字符串</td><td>格式 YYYY-MM-DD HH:MM:SS</td></tr>
+<tr><td>task</td><td>字符串</td><td>任务描述</td></tr>
+<tr><td>status</td><td>字符串</td><td>未开始/进行中/已完成/推迟</td></tr>
+<tr><td>priority</td><td>整数</td><td>1=最高，越大越低</td></tr>
+</table>
+<p>数据文件 <code>{"tasks": [...], "next_id": N}</code>，自增 next_id 用于生成新 ID。</p>
+
+<h2 id="extra">十、与「任务管理器 CLI」对比及扩展</h2>
+<table>
+<tr><th>维度</th><th>Task Manager CLI</th><th>To-Do List（本篇）</th></tr>
+<tr><td>交互方式</td><td>子命令（add/list/done…）</td><td>交互菜单（1-8 数字选择）</td></tr>
+<tr><td>状态</td><td>pending / done</td><td>未开始/进行中/已完成/推迟</td></tr>
+<tr><td>对齐</td><td>西文 f-string 左对齐</td><td>中文按显示宽度对齐（中文各 2 列）</td></tr>
+<tr><td>提醒</td><td>无</td><td>WPS Webhook 群消息，截止前 1 小时</td></tr>
+<tr><td>逾期处理</td><td>无</td><td>启动自动标记「推迟」+ 标红</td></tr>
+<tr><td>颜色</td><td>无</td><td>ANSI 红色高亮，Windows 适配</td></tr>
+</table>
+<h3>可扩展方向</h3>
+<ul>
+<li><b>日期相对提醒</b>：支持今天/明天/本周分组。</li>
+<li><b>进度百分比</b>：任务加 progress 字段，展示进度条。</li>
+<li><b>配置化 Webhook</b>：key 从环境变量或配置文件读取，避免硬编码。</li>
+<li><b>标签/备注</b>：按数据模型预留空间添加 tags、note 字段。</li>
+<li><b>自动刷新</b>：后台线程循环检查提醒，而非仅启动/手动。</li>
+</ul>
+
+</body>
+</html>

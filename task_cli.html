@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>命令行任务管理器 CLI</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:900px;margin:0 auto;padding:25px;line-height:1.9;background:#fafafa;color:#24292e;font-size:17px;}
+h1{color:#0a7ea4;border-bottom:3px solid #0a7ea4;padding-bottom:12px;font-size:30px;}
+h2{color:#0a7ea4;margin-top:38px;border-left:5px solid #0a7ea4;padding-left:14px;font-size:22px;background:#fff;padding:10px 16px;border-radius:0 6px 6px 0;}
+h3{color:#0969da;margin-top:26px;font-size:19px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:13.5px;line-height:1.6;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+.toc{background:#fff;border:2px solid #0a7ea4;border-radius:10px;padding:20px;margin-bottom:25px;}
+.toc a{color:#0a7ea4;text-decoration:none;display:block;padding:4px 0;}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px;}
+th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;}
+th{background:#e8f4f8;color:#0a7ea4;}
+code{background:#e8f4f8;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:13px;color:#0a7ea4;}
+.note{background:#fff8e6;border-left:4px solid #f0b429;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+.ok{background:#f0f8f0;border-left:4px solid #1a7f37;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+@media(max-width:600px){body{padding:15px;}pre{font-size:12.5px;}}</style></head>
+<body>
+
+<h1>命令行任务管理器（Task Manager CLI）</h1>
+
+<div class="toc">
+<h3>目录</h3>
+<a href="#what">一、这个程序是做什么的</a>
+<a href="#struct">二、数据模型与常量</a>
+<a href="#io">三、读写 tasks.json</a>
+<a href="#add">四、add —— 添加任务（校验）</a>
+<a href="#list">五、list —— 过滤与排序</a>
+<a href="#mutation">六、done / remove 修改</a>
+<a href="#report">七、overdue / stats / search</a>
+<a href="#main">八、argparse 子命令分发</a>
+<a href="#cmd">九、命令速查</a>
+<a href="#extra">十、可扩展方向</a>
+</div>
+
+<h2 id="what">一、这个程序是做什么的</h2>
+<p>一个<strong>命令行任务管理器</strong>：用 JSON 文件持久化任务数据，支持添加、列出、（标记）完成、删除、查过期、统计、搜索，交互全部走命令行。</p>
+<table>
+<tr><th>命令</th><th>作用</th></tr>
+<tr><td>add</td><td>添加任务（标题 + 优先级 + 截止日期 + 标签）</td></tr>
+<tr><td>list</td><td>列出任务，可按状态/标签过滤、按字段排序</td></tr>
+<tr><td>done</td><td>把某任务标记为完成</td></tr>
+<tr><td>remove</td><td>删除某任务</td></tr>
+<tr><td>overdue</td><td>显示已过期且未完成的任务</td></tr>
+<tr><td>stats</td><td>任务总数/完成数/优先级分布统计</td></tr>
+<tr><td>search</td><td>按标题关键词搜索</td></tr>
+</table>
+
+<h2 id="args">二、常量与数据模型</h2>
+<pre>BASE_DIR = Path(__file__).parent    # 脚本所在文件夹
+TASKS_FILE = BASE_DIR / "tasks.json"
+VALID_SORT = ("priority", "due_date", "created_at")
+VALID_STATUS = ("pending", "done")</pre>
+<ul>
+<li><code>Path(__file__).parent</code>：不写死路径，脚本挪到哪数据文件就跟到哪，避免硬编码。</li>
+<li>任务字段：<code>id / title / priority / due_date / tags / status / created_at</code>。</li>
+<li>用元组存合法枚举，校验时直接 <code>in</code> 判断，避免魔法值散落各处。</li>
+</ul>
+<h3>任务 JSON 样子</h3>
+<pre>{
+  "id": 1, "title": "学习Python", "priority": 1,
+  "due_date": "2026-08-10", "tags": ["工作","紧急"],
+  "status": "pending", "created_at": "2026-08-07T14:56:27"
+}</pre>
+
+<h2 id="io">三、读写 tasks.json</h2>
+<pre>def load_tasks():
+    if not TASKS_FILE.exists():
+        return {"tasks": [], "next_id": 1}          # 首次运行：空数据
+    try:
+        data = json.loads(TASKS_FILE.read_text(encoding='utf-8'))
+    except json.JSONDecodeError:
+        return {"tasks": [], "next_id": 1}          # 文件损坏：兜底
+    if "next_id" not in data:                       # 旧数据补字段
+        data["next_id"] = max((t.get("id", 0) for t in data.get("tasks", [])),
+                              default=0) + 1
+    return data
+
+def save_tasks(data):
+    TASKS_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2),
+                          encoding='utf-8')</pre>
+<ul>
+<li>读写统一 <code>ensure_ascii=False, indent=2</code>：中文不转义、方便阅读。</li>
+<li>兜底：文件不存在、JSON 损坏都返回空结构，程序不崩。</li>
+<li>老数据若缺 <code>next_id</code>，用最大 id + 1 补上。</li>
+</ul>
+
+<h2 id="add">四、add —— 添加任务（带校验）</h2>
+<pre>def cmd_add(args, data):
+    title = args.title
+    priority = args.priority
+    due = args.due
+    tags = [t.strip() for t in (args.tags or "").split(",") if t.strip()]
+
+    if not (1 &lt;= priority &lt;= 5):
+        print("[错误] 优先级必须在 1-5 之间")
+        return 1
+    try:
+        datetime.strptime(due, "%Y-%m-%d")
+    except ValueError:
+        print("[错误] 截止日期格式应为 YYYY-MM-DD")
+        return 1
+
+    task = {
+        "id": data["next_id"], "title": title, "priority": priority,
+        "due_date": due, "tags": tags, "status": "pending",
+        "created_at": datetime.now().isoformat(timespec='seconds'),
+    }
+    data["tasks"].append(task)
+    data["next_id"] += 1
+    save_tasks(data)
+    print(f"✅ 任务已添加 (ID: {task['id']})")</pre>
+<div class="note">校验用 <code>argparse type=int</code> 保证 priority 是整数，用 <code>datetime.strptime(..., "%Y-%m-%d")</code> 验证日期合法（非法抛 ValueError → 捕获返回错误码 1）。<code>isoformat(timespec='seconds')</code> 生成带秒的时间戳字符串。</div>
+<p><code>tags</code> 解析：把逗号分隔字符串拆开并去掉空白，过滤空标签（一段列表推导式）。</p>
+
+<h2 id="list">五、list —— 列出与过滤排序</h2>
+<pre>def cmd_list(args, data):
+    tasks = list(data["tasks"])
+    if args.status:
+        tasks = [t for t in tasks if t["status"] == args.status]  # 状态过滤
+    if args.tag:
+        tasks = [t for t in tasks if args.tag in t.get("tags", [])]  # 标签过滤
+
+    if args.sort:
+        if args.sort == "priority":
+            tasks.sort(key=lambda t: -t["priority"])   # 高优先级在前
+        elif args.sort == "due_date":
+            tasks.sort(key=lambda t: t["due_date"])    # 按截止日期
+        elif args.sort == "created_at":
+            tasks.sort(key=lambda t: t["created_at"])
+    ...
+    print(f"{'ID':&lt;4} | {'标题':&lt;12} | {'优先级':&lt;5} | {'截止日期':&lt;12} | {'状态':&lt;8} | 标签")
+    print("-" * 70)
+    for t in tasks:
+        mark = "✅" if t["status"] == "done" else "⏳"
+        tags = ", ".join(t.get("tags", []))
+        print(f"{t['id']:&lt;4} | {t['title']:&lt;12} | ... | {mark:&lt;8} | {tags}")</pre>
+<ul>
+<li>过滤用列表推导式产生新列表，不污染原数据。</li>
+<li>排序用 <code>sort(key=...)</code>：priority 取负（1 最高排前）、due_date/created_at 字符串可比大小。</li>
+<li><code>f"{x:&lt;4}"</code> 左对齐定宽，配合 <code>|</code> 拼成对齐表格。</li>
+</ul>
+
+<h2 id="mutation">六、done / remove —— 修改与删除</h2>
+<pre>def cmd_done(args, data):            # 完成任务
+    tid = args.task_id
+    for t in data["tasks"]:
+        if t["id"] == tid:
+            t["status"] = "done"
+            save_tasks(data)
+            print(f"✅ 任务 #{tid} \"{t['title']}\" 已标记为完成")
+            return 0
+    print(f"[错误] 找不到任务 #{tid}")
+    return 1
+
+def cmd_remove(args, data):          # 删除任务
+    tid = args.task_id
+    for i, t in enumerate(data["tasks"]):
+        if t["id"] == tid:
+            data["tasks"].pop(i)
+            save_tasks(data)
+            print(f"🗑️  任务 #{tid} 已删除")
+            return 0
+    print(f"[错误] 找不到任务 #{tid}")</pre>
+<ul>
+<li>遍历找 id，命中就改并 <code>save_tasks</code>；<code>enumerate</code> 拿索引配合 <code>pop(i)</code> 删除。</li>
+<li>找不到时打印错误并 <code>return 1</code>（非零退出码表示失败）。</li>
+<li>修改直接作用于 <code>data</code>（同一字典引用），无需返回新值。</li>
+</ul>
+
+<h2 id="report">七、overdue / stats / search</h2>
+<pre>def cmd_overdue(args, data):     # 过期未完成任务
+    today = date.today().isoformat()
+    overdue = [t for t in data["tasks"]
+               if t["status"] == "pending" and t["due_date"] &lt; today]
+    ...
+
+def cmd_stats(args, data):       # 统计
+    total = len(tasks); done = sum(1 for t in tasks if t["status"] == "done")
+    pending = total - done
+    priority_cnt = {p: 0 for p in range(1, 6)}
+    for t in tasks:
+        if t["status"] == "pending":
+            priority_cnt[t["priority"]] = priority_cnt.get(t["priority"], 0) + 1
+    dist = " ".join(f"★{p}({priority_cnt[p]})" for p in range(5, 0, -1))
+    print(f"  优先级分布: {dist}")
+
+def cmd_search(args, data):      # 标题搜索
+    matched = [t for t in data["tasks"] if args.keyword in t["title"]]</pre>
+<ul>
+<li>过期：先取今天 <code>date.today()</code>，字符串比较 <code>due_date &lt; today</code> 判断（YYYY-MM-DD 字典序即时间序）。</li>
+<li>统计：<code>sum(1 for ... if ...)</code> 计数技巧；用 <code>dict.get</code> 防御缺失优先级。</li>
+<li>搜索：<code>in</code> 做子串匹配标题。</li>
+</ul>
+
+<h2 id="main">八、argparse 子命令分发</h2>
+<pre>def main():
+    ap = argparse.ArgumentParser(description='命令行任务管理器')
+    sub = ap.add_subparsers(dest='cmd')               # 注册"子命令"
+
+    p_add = sub.add_parser('add', help='添加任务')
+    p_add.add_argument('title')
+    p_add.add_argument('--priority', type=int, default=3, help='优先级 1-5')
+    p_add.add_argument('--due', required=True)
+    p_add.add_argument('--tags', default='')
+    # list / done / remove / overdue / stats / search —— 同 motik，逐个注册参数
+    args = ap.parse_args()
+
+    if not args.cmd:                                  # 没给命令 → 打印帮助
+        print("用法: ... 可用命令: ...")
+        return 0
+
+    data = load_tasks()
+    handlers = {
+        'add': cmd_add, 'list': cmd_list, 'done': cmd_done,
+        'remove': cmd_remove, 'overdue': cmd_overdue,
+        'stats': cmd_stats, 'search': cmd_search,
+    }
+    return handlers[args.cmd](args, data)             # 字典分发：命令 → 函数映射
+
+if __name__ == "__main__":
+    raise SystemExit(main())</pre>
+<ul>
+<li><code>add_subparsers(dest='cmd')</code>：每个子命令独立定义参数，互不干扰。</li>
+<li><code>choices=VALID_STATUS</code> 让 argparse 直接拒绝非法取值，少写校验。</li>
+<li>用 <code>dict[命令] = 处理函数</code> 做“命令分发”，比一长串 <code>if/elif</code> 清晰，加命令只需加一个键值对。</li>
+<li>没有命令时打印完整用法清单。</li>
+</ul>
+
+<h2 id="cmd">九、命令速查</h2>
+<pre>add 学习Python --due 2026-08-10 --priority 1 --tags 工作,紧急
+list --status pending --sort priority
+done 1
+remove 1
+overdue
+stats
+search Python</pre>
+<table>
+<tr><th>命令</th><th>说明</th></tr>
+<tr><td>add 标题 --due 日期 [--priority 1-5] [--tags 标签]</td><td>新增；priority 默认 3，--due 必填</td></tr>
+<tr><td>list [--status pending|done] [--tag 标签] [--sort 字段]</td><td>列出，可过滤排序</td></tr>
+<tr><td>done 任务ID</td><td>标记完成</td></tr>
+<tr><td>remove 任务ID</td><td>删除</td></tr>
+<tr><td>overdue</td><td>过期未完成</td></tr>
+<tr><td>stats</td><td>统计</td></tr>
+<tr><td>search 关键词</td><td>按标题搜索</td></tr>
+</table>
+
+<h2 id="extra">十、可扩展方向</h2>
+<ul>
+<li><strong>JSON 错误处理增强</strong>：损坏时备份原文件再重建，避免数据丢失。</li>
+<li><strong>编辑命令 edit</strong>：类似 done/remove，加一个能改标题/优先级/日期的命令。</li>
+<li><strong>批量完成</strong>：支持多个 id（nargs='+'）。</li>
+<li><strong>周期任务 recurrence</strong>：到期后自动生成下一个日程。</li>
+<li><strong>配置化存储</strong>：用 <code>--data</code> 参数或环境变量指定数据文件位置。</li>
+<li><strong>模糊搜索 / 排序多级</strong>：按优先级再按日期二级排序。</li>
+</ul>
+
+</body>
+</html>

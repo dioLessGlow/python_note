@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>JSON 数据差异对比工具</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:900px;margin:0 auto;padding:25px;line-height:1.9;background:#fafafa;color:#24292e;font-size:17px;}
+h1{color:#8250df;border-bottom:3px solid #8250df;padding-bottom:12px;font-size:30px;}
+h2{color:#8250df;margin-top:38px;border-left:5px solid #8250df;padding-left:14px;font-size:22px;background:#fff;padding:10px 16px;border-radius:0 6px 6px 0;}
+h3{color:#0969da;margin-top:26px;font-size:19px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:13.5px;line-height:1.6;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+.toc{background:#fff;border:2px solid #8250df;border-radius:10px;padding:20px;margin-bottom:25px;}
+.toc a{color:#8250df;text-decoration:none;display:block;padding:4px 0;}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px;}
+th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;}
+th{background:#f3ecfb;color:#8250df;}
+code{background:#f3ecfb;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:13px;color:#8250df;}
+.note{background:#fff8e6;border-left:4px solid #f0b429;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+.ok{background:#f0f8f0;border-left:4px solid #1a7f37;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+@media(max-width:600px){body{padding:15px;}pre{font-size:12.5px;}}</style></head>
+<body>
+
+<h1>JSON 数据差异对比工具（json_diff）</h1>
+
+<div class="toc">
+<h3>目录</h3>
+<a href="#what">一、这个工具是做什么的</a>
+<a href="#files">二、项目结构与三个角色</a>
+<a href="#type">三、类型判断 _type_name</a>
+<a href="#diff">四、Differ —— 核心递归对比</a>
+<a href="#dict">五、字典对比 _diff_dict</a>
+<a href="#list">六、列表对比 _diff_list</a>
+<a href="#formatter">七、Formatter —— 人类可读报告</a>
+<a href="#main">八、main 命令行入口</a>
+<a href="#demo">九、实测演示</a>
+<a href="#extra">十、可扩展方向</a>
+</div>
+
+<h2 id="what">一、这个工具是做什么的</h2>
+<p>一个 <strong>JSON 数据差异对比工具</strong>：递归比较两份 JSON，找出哪些字段被<strong>新增 / 删除 / 修改</strong>，并统计差异类型，输出一份人类可读的报告。</p>
+<table>
+<tr><th>差异类型</th><th>含义</th><th>示例</th></tr>
+<tr><td>added 新增</td><td>b 里有、a 没有的键/元素</td><td>新增 email</td></tr>
+<tr><td>deleted 删除</td><td>a 里有、b 没有的键/元素</td><td>删除 phone</td></tr>
+<tr><td>modified 修改</td><td>两边都有但值不同</td><td>age 25 → 26</td></tr>
+<tr><td>type_changed 类型变更</td><td>值的类型都变了</td><td>int → str</td></tr>
+</table>
+
+<h2 id="files">二、项目结构（三个角色）</h2>
+<table>
+<tr><th>文件</th><th>职责</th></tr>
+<tr><td>differ.py</td><td>核心算法：Differ 类递归对比，产出差异记录</td></tr>
+<tr><td>formatter.py</td><td>把差异记录格式化串联成文本报告 + 统计</td></tr>
+<tr><td>main.py</td><td>命令行入口：解析参数、加载 JSON、调用上面两者</td></tr>
+</table>
+<p>“核心算法 / 展示 / 入口”分离——算法改了不影响展示，是良好分层。</p>
+
+<h2 id="type">三、类型判断 _type_name</h2>
+<pre>def _type_name(value):
+    if isinstance(value, bool):
+        return 'bool'            # Python 中 bool 是 int 的子类！
+    if isinstance(value, int):
+        return 'int'
+    if isinstance(value, float):
+        return 'float'
+    if isinstance(value, str):
+        return 'str'
+    if isinstance(value, list):
+        return 'list'
+    if isinstance(value, dict):
+        return 'dict'
+    if value is None:
+        return 'null'            # JSON 标准里叫 null
+    return type(value).__name__  # 兜底：其他类型</pre>
+<div class="note">⚠️ 为什么先判断 <code>bool</code>？因为 Python 里 <code>True == 1</code>、<code>isinstance(True, int)</code> 为真。必须把 bool 放在 int 前面，否则 <code>True</code> 会被误判成 int。</div>
+
+<h2 id="diff">四、Differ —— 递归差异对比</h2>
+<pre>class Differ:
+    def __init__(self, ignore_paths=None, tolerance=None):
+        self.ignore_paths = set(ignore_paths or [])  # 短路求值：None → []
+        self.tolerance = tolerance
+        self.stats = Counter()                        # 统计各类差异次数
+
+    def diff(self, a, b, path=''):
+        return self._diff(a, b, path)
+
+    def _should_ignore(self, path):
+        return path in self.ignore_paths   # 该路径是否要忽略
+
+    def _diff(self, a, b, path):
+        if self._should_ignore(path):
+            return []                              # 1. 忽略指定路径
+
+        if type(a) != type(b):                     # 2. 类型不同 → 类型变更
+            self.stats['modified'] += 1
+            return [self._change_record(path, a, b, type_changed=True)]
+
+        if isinstance(a, dict):                    # 3. 字典 → 递归字典
+            return self._diff_dict(a, b, path)
+        if isinstance(a, list):                    # 4. 列表 → 递归列表
+            return self._diff_list(a, b, path)
+        if a != b:                                 # 5. 标量值不同
+            return [self._change_record(path, a, b, type_changed=False)]
+        return []                                  # 6. 相同 → 无差异
+</pre>
+<ul>
+<li><strong>递归终止</strong>：类型不同或标量不等就返回记录，否则继续往下钻。</li>
+<li><strong>type 判断顺序</strong>：第 2 步用 <code>type(a) != type(b)</code>（精确类型），第 3、4 步用 <code>isinstance</code>（允许子类）。</li>
+<li><code>self.stats['modified'] += 1</code> 用 <code>Counter</code>，不存在时自动从 0 开始，不用先初始化。</li>
+</ul>
+
+<h3>差异记录的样子</h3>
+<pre>{'type': 'deleted', 'path': 'address.city', 'old': 'Beijing'}
+{'type': 'added', 'path': 'email', 'new': 'alice@example.com'}
+{'type': 'modified', 'path': 'age', 'old': 25, 'new': '26',
+ 'old_type': 'int', 'new_type': 'str', 'type_changed': True}</pre>
+
+<h2 id="dict">五、字典对比 _diff_dict</h2>
+<pre>def _diff_dict(self, a, b, path):
+    results = []
+    for key in a:                              # 第一轮：扫 a，找删除
+        sub = f"{path}.{key}" if path else str(key)
+        if key not in b:
+            self.stats['deleted'] += 1
+            results.append({'type': 'deleted', 'path': sub, 'old': a[key]})
+        else:
+            results.extend(self._diff(a[key], b[key], sub))   # 同键递归
+    for key in b:                              # 第二轮：扫 b，找新增
+        if key not in a:
+            sub = f"{path}.{key}" if path else str(key)
+            self.stats['added'] += 1
+            results.append({'type': 'added', 'path': sub, 'new': b[key]})
+    return results</pre>
+<div class="ok">两轮循环目的：第一轮发现 a 中 b 没有的键（删除），第二轮发现 b 中 a 没有的键（新增），且都不越过对方遍历范围，避免漏项。路径用 <code>.</code> 连接，如 <code>address.city</code>。</div>
+
+<h2 id="list">六、列表对比 _diff_list</h2>
+<pre>def _diff_list(self, a, b, path):
+    results = []
+    max_len = max(len(a), len(b))
+    for i in range(max_len):
+        sub = f"{path}[{i}]"                   # 按下标对齐，路径用 [i]
+        if i &gt;= len(a):
+            self.stats['added'] += 1
+            results.append({'type': 'added', 'path': sub, 'new': b[i]})
+        elif i &gt;= len(b):
+            self.stats['deleted'] += 1
+            results.append({'type': 'deleted', 'path': sub, 'old': a[i]})
+        else:
+            results.extend(self._diff(a[i], b[i], sub))    # 同下标递归
+    return results</pre>
+<p>说明：列表按下标逐位比较，超出对方长度的部分记为新增/删除。这是“位置敏感”的朴素算法，适合定长或顺序稳定的列表。</p>
+
+<h2 id="formatter">七、Formatter —— 人类可读报告</h2>
+<pre>class Formatter:
+    @staticmethod
+    def format(diffs):
+        lines = ["=== JSON Diff Report ===", ""]
+        for d in diffs:
+            if d['type'] == 'added':
+                lines.append(f"[新增] {d['path']}: {Formatter._repr(d['new'])}")
+            elif d['type'] == 'deleted':
+                lines.append(f"[删除] {d['path']}: {Formatter._repr(d['old'])}")
+            elif d['type'] == 'modified':
+                if d.get('type_changed'):
+                    lines.append(f"[修改] {d['path']}: {Formatter._repr(d['old'])} → "
+                                 f"{Formatter._repr(d['new'])} "
+                                 f"(类型变更: {d['old_type']} → {d['new_type']})")
+                else:
+                    lines.append(f"[修改] {d['path']}: {Formatter._repr(d['old'])} → "
+                                 f"{Formatter._repr(d['new'])}")
+        lines.append("")
+        lines.append("--- 统计 ---")
+        stats = Counter(d['type'] for d in diffs)
+        type_changed = sum(1 for d in diffs if d.get('type_changed'))
+        lines.append(f"新增: {stats['added']}  |  删除: {stats['deleted']}  |  "
+                     f"修改: {stats['modified']}  |  类型变更: {type_changed}")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _repr(v):                       # 保持可读性的值格式化
+        if isinstance(v, str):
+            return f'"{v}"'              # 字符串加引号
+        if v is None:
+            return 'null'
+        if isinstance(v, (dict, list)):
+            return json.dumps(v, ensure_ascii=False)   # 压缩成单行
+        return str(v)</pre>
+<ul>
+<li><code>@staticmethod</code> 静态方法：不依赖实例，直接 <code>Formatter.format(...)</code> 调用。</li>
+<li><code>Counter(d['type'] for d in diffs)</code> 一句统计各类型数量。</li>
+<li><code>_repr</code> 让字符串带引号、None 显 <code>null</code>、字典/列表压缩成单行，方便阅读。</li>
+</ul>
+
+<h2 id="main">八、main 命令行入口</h2>
+<pre>def load_input(path_or_json):          # 参数既可能是文件也可能是 JSON 字符串
+    p = Path(path_or_json)
+    if p.is_file():
+        text = p.read_text(encoding='utf-8-sig')   # 兼容 BOM 头的文件
+        return json.loads(text)
+    return json.loads(path_or_json)
+
+def main():
+    ap = argparse.ArgumentParser(description='JSON 数据差异对比工具')
+    ap.add_argument('a', help='第一个 JSON 文件或 JSON 字符串')
+    ap.add_argument('b', help='第二个 JSON 文件或 JSON 字符串')
+    ap.add_argument('-o', '--output', help='输出到文件')
+    ap.add_argument('--ignore', nargs='*', default=[], help='忽略的路径')
+    ap.add_argument('--tolerance', type=float, default=None, help='浮点数精度容差')
+    args = ap.parse_args()
+
+    differ = Differ(ignore_paths=args.ignore, tolerance=args.tolerance)
+    diffs = differ.diff(a, b)
+    report = Formatter.format(diffs)
+    print(report)
+    if args.output:
+        Path(args.output).write_text(report, encoding='utf-8')
+        print(f"\n报告已写入: {args.output}")
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())</pre>
+<ul>
+<li><code>utf-8-sig</code>：能处理 Windows 记事本保存的带 BOM 头的 UTF-8 文件。</li>
+<li><code>--ignore</code>：忽略指定路径（用 <code>nargs='*'</code> 接收多个）。</li>
+<li><code>--tolerance</code>：浮点容差，预留参数。</li>
+<li><code>raise SystemExit(main())</code>：把返回值当进程退出码。</li>
+</ul>
+
+<h3>运行方式</h3>
+<pre>python main.py test_data\a.json test_data\b.json
+python main.py test_data\a.json test_data\b.json --ignore "address.city"
+python main.py '{&quot;name&quot;:&quot;A&quot;}' '{&quot;name&quot;:&quot;B&quot;}'        # 直接传 JSON 字符串</pre>
+
+<h2 id="demo">九、实测演示</h2>
+<p>对比 <code>test_data\a.json</code> 与 <code>test_data\b.json</code>：</p>
+<pre>a.json:
+{
+  "name": "Alice", "age": 25,
+  "address": { "city": "Beijing", "zip": "100000" },
+  "hobbies": ["reading", "swimming"]
+}
+
+b.json:
+{
+  "name": "Alice", "age": "26",
+  "address": { "city": "Shanghai", "zip": "200000", "street": "Nanjing Road" },
+  "hobbies": ["reading", "cycling", "running"],
+  "email": "alice@example.com"
+}</pre>
+<pre>=== JSON Diff Report ===
+
+[修改] age: 25 → "26" (类型变更: int → str)
+[修改] address.city: "Beijing" → "Shanghai"
+[修改] address.zip: "100000" → "200000"
+[修改] hobbies[1]: "swimming" → "cycling"
+[新增] address.street: "Nanjing Road"
+[新增] hobbies[2]: "running"
+[新增] email: "alice@example.com"
+
+--- 统计 ---
+新增: 3  |  删除: 0  |  修改: 3  |  类型变更: 1</pre>
+<p>说明：age 的 25（int）变成 "26"（str）触发 <strong>类型变更</strong>；字典新增 street、列表多出 running、整份多出 email。</p>
+
+<h2 id="extra">十、可扩展方向</h2>
+<ul>
+<li><strong>实现 tolerance</strong>：当前 <code>--tolerance</code> 已接收但未参与比较。可在 <code>_diff</code> 对标量比较前，对数值做 <code>abs(a-b) &lt;= tolerance</code> 判定。</li>
+<li><strong>旁路匹配</strong>：列表支持按内嵌对象主键（如 id）对齐，而非按下标，更适合无序 JSON 数组。</li>
+<li><strong>感应已知修改的判定</strong>：现在修改与类型变更分开统计；可增加权重汇总，输出更智慧的总结。</li>
+<li><strong>多格式输出</strong>：报告除文本外支持 JSON / CSV / HTML，便于接入看板。</li>
+<li><strong>豁免路径通配</strong>：<code>--ignore</code> 支持 <code>users[*].password</code> 这类通配路径。</li>
+</ul>
+
+</body>
+</html>
