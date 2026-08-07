@@ -1,289 +1,358 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Python 学习笔记 &amp; 知识库</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
-    background: #f0f4f0;
-    color: #1f2328;
-    line-height: 1.7;
-    padding: 20px;
-  }
-  .container { max-width: 960px; margin: 0 auto; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python 学习笔记 &amp; 知识库</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue 2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+  <style>
+    /* 缓动函数 */
+    .ease-out { transition-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+    .transition-medium { transition-duration: 200ms; }
+    .transition-all { transition-property: all; }
+    .transition-transform { transition-property: transform; }
 
-  /* Tabs */
-  .tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 0;
-    background: #dce6dc;
-    border-radius: 10px 10px 0 0;
-    overflow: hidden;
-    border: 1px solid #c8d6c8;
-    border-bottom: none;
-  }
-  .tab {
-    flex: 1;
-    padding: 14px 10px;
-    text-align: center;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 15px;
-    color: #555;
-    transition: all 0.2s;
-    user-select: none;
-    border-right: 1px solid #c8d6c8;
-    white-space: nowrap;
-  }
-  .tab:last-child { border-right: none; }
-  .tab:hover { background: #c8dac8; }
-  .tab.active {
-    background: #f0f4f0;
-    color: #1a7f37;
-    box-shadow: inset 0 -3px 0 #1a7f37;
-  }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+    /* 内容框架：居中加载，保持原样式 */
+    .container { max-width: 900px; margin: 0 auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-  h1 {
-    text-align: center;
-    font-size: 26px;
-    color: #1a7f37;
-    padding: 25px 0 6px;
-  }
-  .subtitle {
-    text-align: center;
-    color: #666;
-    font-size: 13px;
-    margin-bottom: 20px;
-  }
+    .kg-iframe { width: 100%; height: 80vh; border: none; }
+    .loading { color: #888; padding: 20px; text-align: center; }
+    .error   { color: #c00; padding: 20px; text-align: center; }
 
-  /* Cards */
-  .section {
-    background: #fff;
-    border: 1px solid #d0d7de;
-    border-radius: 10px;
-    margin-bottom: 16px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  }
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 13px 20px;
-    cursor: pointer;
-    user-select: none;
-    background: #f6faf6;
-    border-bottom: 1px solid #d0d7de;
-    transition: background 0.15s;
-  }
-  .section-header:hover { background: #edf4ed; }
-  .section-header h2 {
-    font-size: 15px;
-    color: #1a7f37;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .section-header .badge {
-    background: #1a7f37;
-    color: #fff;
-    font-size: 10px;
-    padding: 1px 7px;
-    border-radius: 10px;
-    font-weight: 500;
-  }
-  .section-header .meta { font-size: 12px; color: #888; }
-  .section-header .arrow {
-    transition: transform 0.25s;
-    color: #888;
-    font-size: 11px;
-  }
-  .section-header .arrow.open { transform: rotate(180deg); }
-  .section-body { display: none; }
-  .section-body.open { display: block; }
-  .qa-item {
-    padding: 10px 20px;
-    border-bottom: 1px solid #eef2ee;
-  }
-  .qa-item:last-child { border-bottom: none; }
-  .q {
-    font-weight: 600;
-    color: #1f2328;
-    margin-bottom: 3px;
-    display: flex;
-    gap: 8px;
-    font-size: 14px;
-  }
-  .q .tag {
-    background: #d1f0d1;
-    color: #1a7f37;
-    font-size: 10px;
-    padding: 0 6px;
-    border-radius: 4px;
-    font-weight: 500;
-    white-space: nowrap;
-    margin-top: 3px;
-  }
-  .a {
-    color: #444;
-    padding-left: 0;
-    font-size: 14px;
-  }
-  .a code, .q code {
-    background: #edf4ed;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
-    font-size: 13px;
-    color: #1a7f37;
-  }
-  .a pre {
-    background: #f3f7f3;
-    border: 1px solid #d0d7de;
-    border-radius: 6px;
-    padding: 8px 14px;
-    margin: 5px 0;
-    overflow-x: auto;
-    font-size: 13px;
-    font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
-    line-height: 1.5;
-  }
-  .a ul { margin: 4px 0 4px 18px; }
-  .a li { margin-bottom: 2px; }
-  .footer {
-    text-align: center;
-    color: #888;
-    font-size: 13px;
-    padding: 30px 0;
-  }
+    .header { max-width: 900px; margin: 0 auto; padding: 22px 0 14px; text-align: center; }
+    .header h1 { font-size: 26px; color: #1a7f37; }
+    .header p  { color: #666; font-size: 13px; margin-top: 4px; }
+    .footer { max-width: 900px; margin: 0 auto; text-align: center; color: #888; font-size: 13px; padding: 30px 0; }
 
-  /* Chapter indicator */
-  .ch-tag {
-    font-size: 11px;
-    color: #888;
-    font-weight: 400;
-  }
-
-  .exer {
-    background: #f0f8f0;
-    border-top: 2px solid #1a7f37;
-    border-radius: 0 0 6px 6px;
-  }
-  .exer .q .tag {
-    background: #1a7f37;
-    color: #fff;
-  }
-  .exer .a ol {
-    margin: 4px 0 4px 20px;
-  }
-  .exer .a li {
-    margin-bottom: 4px;
-  }
-  .exer .a ul {
-    margin: 2px 0 2px 20px;
-  }
-  .exer .a code {
-    background: #dafbe1;
-  }
-  @media (max-width: 600px) {
-    body { padding: 10px; font-size: 16px; }
-    .tabs { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
-    .tab { font-size: 9px; padding: 10px 2px; white-space: nowrap; flex-shrink: 0; }
-    .section-header { padding: 10px 14px; }
-    .section-header h2 { font-size: 14px; }
-    .qa-item { padding: 8px 14px; }
-    .q { font-size: 15px; }
-    .a { font-size: 15px; }
-    .a pre { font-size: 15px; padding: 10px 12px; }
-    .a code { font-size: 14px; }
-    h1 { font-size: 22px; }
-  }
-</style>
-</head>
-<body>
-<div class="container">
-
-  <h1> Python 学习笔记</h1>
-  <p class="subtitle">提问笔记 + 《Python编程从入门到实践（第3版）》知识库</p>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab(0)">  提问笔记（按天）</div>
-    <div class="tab" onclick="switchTab(1)">  知识库（按书）</div>
-    <div class="tab" onclick="switchTab(2)">  知识图谱</div>
-    <div class="tab" onclick="switchTab(3)">  练习题</div>
-    <div class="tab" onclick="switchTab(4)">  周考</div>
-    <div class="tab" onclick="switchTab(5)">  常见陷阱</div>
-    <div class="tab" onclick="switchTab(6)">  知识大全</div>
-    <div class="tab" onclick="switchTab(7)">  数据转换</div>
-  </div>
-
-  <!-- TAB 1 -->
-  <div class="tab-content active" id="tab1"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
-
-  <!-- TAB 2 -->
-  <div class="tab-content" id="tab2"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
-
-  <!-- TAB 3: 图谱 -->
-  <div class="tab-content" id="tab3">
-    <iframe id="kg-iframe" style="width:100%;height:80vh;border:none;"></iframe>
-  </div>
-
-  <!-- TAB 4: 练习题 -->
-  <div class="tab-content" id="tab4"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
-
-  <!-- TAB 5: 周考 -->
-  <div class="tab-content" id="tab5"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
-
-  <!-- TAB 6: 常见陷阱 -->
-  <div class="tab-content" id="tab6"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
-
-  <!-- TAB 7: 知识大全 -->
-  <div class="tab-content" id="tab7"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
-
-  <!-- TAB 8: 数据转换 -->
-  <div class="tab-content" id="tab8"><p style="color:#888;padding:20px;text-align:center;">加载中...</p></div>
-
-  <div class="footer">
-    《Python编程从入门到实践（第3版）》&nbsp;·&nbsp; Eric Matthes &copy; 2026
-  </div>
-</div>
-
-<script>
-  function toggle(header) {
-    const body = header.nextElementSibling;
-    const arrow = header.querySelector('.arrow');
-    body.classList.toggle('open');
-    arrow.classList.toggle('open');
-  }
-  function switchTab(index) {
-    const tabs = document.querySelectorAll('.tab');
-    const contents = document.querySelectorAll('.tab-content');
-    tabs.forEach(t => t.classList.remove('active'));
-    contents.forEach(c => c.classList.remove('active'));
-    tabs[index].classList.add('active');
-    contents[index].classList.add('active');
-    if (index === 2) {
-      const iframe = document.getElementById('kg-iframe');
-      if (!iframe.getAttribute('src')) iframe.src = 'knowledge-graph.html';
+    /* ===== 嵌入文档卡片样式（qa.html / kb.html / ex.html / zk.html / pitfalls.html / knowledge.html） ===== */
+    .section {
+      background: #fff;
+      border: 1px solid #d0d7de;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-  }
-  // Load content from same directory
-  const files = ['qa.html', 'kb.html', 'ex.html', 'zk.html', 'pitfalls.html', 'knowledge.html', 'convert.html'];
-  const containers = [document.getElementById('tab1'), document.getElementById('tab2'), document.getElementById('tab4'), document.getElementById('tab5'), document.getElementById('tab6'), document.getElementById('tab7'), document.getElementById('tab8')];
-  files.forEach((url, i) => {
-    fetch(url)
-      .then(r => r.text())
-      .then(html => { containers[i].innerHTML = html; })
-      .catch(() => { containers[i].innerHTML = '<p style="color:#c00;padding:20px;">加载失败，请刷新重试</p>'; });
-  });
-</script>
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 20px;
+      cursor: pointer;
+      user-select: none;
+      background: #f6faf6;
+      border-bottom: 1px solid #d0d7de;
+      transition: background 0.15s;
+    }
+    .section-header:hover { background: #edf4ed; }
+    .section-header h2 {
+      font-size: 15px;
+      color: #1a7f37;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .section-header .badge {
+      background: #1a7f37;
+      color: #fff;
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .section-header .meta { font-size: 12px; color: #888; }
+    .section-header .arrow {
+      transition: transform 0.25s;
+      color: #888;
+      font-size: 11px;
+    }
+    .section-header .arrow.open { transform: rotate(180deg); }
+    /* 关键：section-body 默认收起，加 .open 展开 */
+    .section-body { display: none; }
+    .section-body.open { display: block; }
+    .qa-item {
+      padding: 10px 20px;
+      border-bottom: 1px solid #eef2ee;
+    }
+    .qa-item:last-child { border-bottom: none; }
+    .q {
+      font-weight: 600;
+      color: #1f2328;
+      margin-bottom: 3px;
+      display: flex;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .q .tag {
+      background: #d1f0d1;
+      color: #1a7f37;
+      font-size: 10px;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      white-space: nowrap;
+      margin-top: 3px;
+    }
+    .a {
+      color: #444;
+      font-size: 14px;
+    }
+    .a code, .q code {
+      background: #edf4ed;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      color: #1a7f37;
+    }
+    .a pre {
+      background: #f3f7f3;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 8px 14px;
+      margin: 5px 0;
+      overflow-x: auto;
+      font-size: 13px;
+      font-family: Consolas, monospace;
+      line-height: 1.5;
+    }
+    .a ul { margin: 4px 0 4px 18px; }
+    .a li { margin-bottom: 2px; }
+    .a ol { margin: 4px 0 4px 20px; }
+    .exer {
+      background: #f0f8f0;
+      border-top: 2px solid #1a7f37;
+      border-radius: 0 0 6px 6px;
+    }
+    .exer .a code { background: #dafbe1; }
+    .ch-tag { font-size: 11px; color: #888; font-weight: 400; }
+    @media (max-width: 600px) {
+      .section-header { padding: 10px 14px; }
+      .section-header h2 { font-size: 14px; }
+      .qa-item { padding: 8px 14px; }
+      .q { font-size: 15px; }
+      .a { font-size: 15px; }
+      .a pre { font-size: 15px; padding: 10px 12px; }
+      .a code { font-size: 14px; }
+    }
+
+    /* ===== 悬浮导航 ===== */
+    /* 圆点按钮：未点击时收成一个点 */
+    .fab-dot {
+      width: 46px; height: 46px; border-radius: 9999px;
+      background: linear-gradient(135deg, #1a7f37, #0969da);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(9,105,218,0.35);
+      cursor: pointer; border: none;
+      transition: transform 200ms cubic-bezier(0,0,0.2,1);
+    }
+    .fab-dot:hover { transform: scale(1.08); }
+
+    /* 圆点切换过渡 */
+    .fab-dot-enter-active, .fab-dot-leave-active { transition: all 220ms ease-out; }
+    .fab-dot-enter, .fab-dot-leave-to { opacity: 0; transform: scale(0.6); }
+
+    /* 面板过渡：淡入淡出 + 从右上角锚点向左缩放展开（无位移，不超屏） */
+    .panel-enter-active, .panel-leave-active {
+      transition: opacity 260ms ease-out, transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .panel-enter, .panel-leave-to {
+      opacity: 0;
+      transform: scale(0.85) translateX(10px);
+      transform-origin: top right;
+    }
+    /* 面板进入 + 滑块平滑（短暂延迟让滑块跟上） */
+    .panel-enter-active .nav-slider { transition: top 260ms cubic-bezier(0, 0, 0.2, 1); }
+
+    /* 展开的导航面板：出现在圆点左侧；限高防超出屏幕，内部可滚动 */
+    .nav-panel {
+      position: absolute;
+      top: 1.5rem; right: calc(1.5rem + 280px);
+      width: 220px;
+      max-height: calc(100vh - 3rem);
+      overflow-y: auto;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+      border: 1px solid rgba(220,230,220,0.8);
+    }
+    .nav-slider {
+      transition: top 200ms cubic-bezier(0, 0, 0.2, 1);
+    }
+    .nav-item { height: 44px; }
+
+    /* 面板展开时菜单项依次出现 */
+    .nav-panel li {
+      opacity: 0;
+      animation: navItemIn 300ms ease-out forwards;
+    }
+    .nav-panel li:nth-child(1) { animation-delay: 0ms; }
+    .nav-panel li:nth-child(2) { animation-delay: 40ms; }
+    .nav-panel li:nth-child(3) { animation-delay: 80ms; }
+    .nav-panel li:nth-child(4) { animation-delay: 120ms; }
+    .nav-panel li:nth-child(5) { animation-delay: 160ms; }
+    .nav-panel li:nth-child(6) { animation-delay: 200ms; }
+    .nav-panel li:nth-child(7) { animation-delay: 240ms; }
+    .nav-panel li:nth-child(8) { animation-delay: 280ms; }
+    .nav-panel li:nth-child(9) { animation-delay: 320ms; }
+    .nav-panel li:nth-child(10) { animation-delay: 360ms; }
+    .nav-panel li:nth-child(11) { animation-delay: 400ms; }
+    @keyframes navItemIn {
+      from { opacity: 0; transform: translateX(14px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* 悬浮容器：固定锚点（右上角），尺寸不变避免跳动 */
+    #fab { position: fixed; right: 0; top: 0; z-index: 999; width: 0; height: 0; }
+    /* 圆点：绝对定位贴右上角 */
+    .fab-dot-wrap { position: absolute; top: 1.5rem; right: 1.5rem; }
+
+    @media (max-width: 600px) {
+      .fab-dot-wrap { top: 1rem; right: 1rem; }
+      .nav-panel { top: 1rem; right: calc(1rem + 280px); width: 200px; }
+    }
+  </style>
+</head>
+<body class="antialiased bg-gray-100 min-h-screen p-6">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- 顶部标题（居中） -->
+    <div class="header">
+      <h1> Python 学习笔记</h1>
+      <p>提问笔记 + 《Python编程从入门到实践（第3版）》知识库</p>
+    </div>
+
+    <!-- 内容框架（居中，不受导航影响） -->
+    <div class="container">
+      <div class="tab-content active" id="tab1"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab2"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab3">
+        <iframe id="kg-iframe" class="kg-iframe"></iframe>
+      </div>
+      <div class="tab-content" id="tab4"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab5"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab6"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab7"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab8"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab9"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab10"><p class="loading">加载中...</p></div>
+      <div class="tab-content" id="tab11"><p class="loading">加载中...</p></div>
+    </div>
+
+    <p class="footer">
+      《Python编程从入门到实践（第3版）》&nbsp;·&nbsp; Eric Matthes &copy; 2026
+    </p>
+  </div>
+
+  <!-- 悬浮导航：点击展开/收回 -->
+  <div id="fab">
+    <transition name="fab-dot">
+      <div v-if="!open" class="fab-dot-wrap" @click="open=true">
+        <div class="fab-dot" title="展开导航">
+          <!-- 菜单图标 -->
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/>
+          </svg>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="panel">
+      <div v-if="open" class="nav-panel relative p-2">
+      <!-- 关闭按钮（点击收回） -->
+      <button @click="open=false" class="absolute right-2 top-2 text-gray-400 hover:text-gray-600 transition-all transition-medium">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>
+        </svg>
+      </button>
+      <!-- 滑块背景：panel padding 0.5rem + ul mt-8 2rem = 2.5rem，与第一项对齐 -->
+      <span class="nav-slider absolute left-2 right-2 h-11 bg-indigo-50 rounded-lg shadow-sm"
+            :style="{ top: `calc(3rem + 44px * ${selected})` }"></span>
+      <ul class="relative mt-10">
+        <li v-for="(item, idx) in items" :key="idx">
+          <button type="button" @click="select(idx)" :aria-selected="selected===idx"
+                  class="nav-item px-3 w-full flex items-center rounded-lg focus:outline-none"
+                  :class="selected === idx ? 'text-indigo-600 font-semibold' : 'text-gray-700'">
+            <svg :class="selected === idx ? 'text-indigo-400' : 'text-gray-500'"
+                 class="h-5 w-5 transition-all ease-out transition-medium"
+                 viewBox="0 0 24 24" fill="currentColor" v-html="item.icon"></svg>
+            <span class="ml-3 text-sm">{{ item.label }}</span>
+          </button>
+        </li>
+      </ul>
+      </div>
+    </transition>
+  </div>
+
+  <script>
+    const navItems = [
+      { label: '提问笔记',     icon: '<path d="M4 4h16v12H5l-1 4z"/>' },
+      { label: '知识库',       icon: '<path d="M4 3h12v18H4zM18 5h2v14h-2z"/>' },
+      { label: '知识图谱',     icon: '<path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/>' },
+      { label: '练习题',       icon: '<path d="M5 4h14v16H5z M9 8h6M9 12h6M9 16h4"/>' },
+      { label: '周考',         icon: '<path d="M4 5h16v14H4z M8 3v4M16 3v4M4 10h16"/>' },
+      { label: '常见陷阱',     icon: '<path d="M12 2l11 19H1z M12 9v5M12 17v.01"/>' },
+      { label: '知识大全',     icon: '<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>' },
+      { label: '数据转换',     icon: '<path d="M7 7h10l-3-3M17 17H7l3 3"/>' },
+      { label: 'JSON处理',     icon: '<path d="M5 3h2v18H5zM17 3h2v18h-2z M9 7h6v2H9zM9 11h6v2H9zM9 15h6v2H9z"/>' },
+      { label: '爬虫数据分析', icon: '<path d="M12 2a10 10 0 100 20 10 10 0 000-20z M2 12h20M12 2c4 4 4 16 0 20M12 2c-4 4-4 16 0 20"/>' },
+      { label: '日志分析告警', icon: '<path d="M4 4h16v16H4z M12 8v5M12 16v.01M9 12h6"/>' },
+    ];
+
+    const files = ['qa.html', 'kb.html', 'ex.html', 'zk.html', 'pitfalls.html', 'knowledge.html', 'convert.html', 'json.html', 'crawler.html', 'logging.html'];
+    const targets = ['tab1', 'tab2', 'tab4', 'tab5', 'tab6', 'tab7', 'tab8', 'tab9', 'tab10', 'tab11'];
+
+    new Vue({
+      el: '#fab',
+      data: {
+        open: false,
+        selected: 0,
+        items: navItems
+      },
+      methods: {
+        select(i) {
+          this.selected = i;
+          this.open = false;   // 选中后自动收回成圆点
+          document.querySelectorAll('.tab-content').forEach(p => p.classList.remove('active'));
+          document.getElementById('tab' + (i + 1)).classList.add('active');
+          if (i === 2) {
+            const iframe = document.getElementById('kg-iframe');
+            if (!iframe.getAttribute('src')) iframe.src = 'knowledge-graph.html';
+          }
+        }
+      }
+    });
+
+    // 折叠/展开嵌入文档的 .section 卡片（qa.html/kb.html 等用 onclick="toggle(this)")
+    function toggle(header) {
+      const body = header.nextElementSibling;
+      const arrow = header.querySelector('.arrow');
+      if (body) body.classList.toggle('open');
+      if (arrow) arrow.classList.toggle('open');
+    }
+
+    files.forEach((url, i) => {
+      fetch(url)
+        .then(r => r.text())
+        .then(html => {
+          const el = document.getElementById(targets[i]);
+          const placeholder = el.querySelector('.loading');
+          if (placeholder) placeholder.remove();
+          el.insertAdjacentHTML('beforeend', html);
+        })
+        .catch(() => {
+          document.getElementById(targets[i]).innerHTML = '<p class="error">加载失败，请刷新重试</p>';
+        });
+    });
+  </script>
 </body>
 </html>

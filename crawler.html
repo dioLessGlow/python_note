@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Python 爬虫数据分析大全</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:900px;margin:0 auto;padding:25px;line-height:1.9;background:#fafafa;color:#24292e;font-size:17px;}
+h1{color:#0969da;border-bottom:3px solid #0969da;padding-bottom:12px;font-size:30px;}
+h2{color:#0969da;margin-top:35px;border-left:5px solid #0969da;padding-left:14px;font-size:22px;background:#fff;padding:10px 16px;border-radius:0 6px 6px 0;}
+h3{color:#1a7f37;margin-top:25px;font-size:19px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:15px;line-height:1.6;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+.toc{background:#fff;border:2px solid #0969da;border-radius:10px;padding:20px;margin-bottom:25px;}
+.toc a{color:#0969da;text-decoration:none;display:block;padding:5px 0;}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:15px;}
+th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;}
+th{background:#edf4ed;color:#1a7f37;}
+code{background:#edf4ed;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:14px;color:#0969da;}
+@media(max-width:600px){body{padding:15px;}pre{font-size:14px;}}</style></head>
+<body>
+
+<h1>Python 爬虫数据分析大全</h1>
+
+<div class="toc">
+<h3>目录</h3>
+<a href="#requests">一、requests 请求网页/接口</a>
+<a href="#headers">二、请求头 headers（Token/Cookie/UA）</a>
+<a href="#bs4">三、BeautifulSoup 解析 HTML</a>
+<a href="#extract">四、表格数据提取</a>
+<a href="#pandas">五、pandas 整理数据</a>
+<a href="#filter">六、pandas 筛选与统计</a>
+<a href="#api">七、实战：API 接口爬取（PerfEye）</a>
+<a href="#clean">八、数据清洗与字段适配</a>
+<a href="#tips">九、常用技巧速查</a>
+</div>
+
+<h2 id="requests">一、requests 请求网页/接口</h2>
+<pre>import requests
+
+# GET 请求（相当于浏览器按回车）
+response = requests.get("https://www.baidu.com/")
+
+# 查看状态码：200成功 / 404找不到 / 500服务器错误
+print("状态码:", response.status_code)
+
+# 查看返回内容
+print("网页内容:", response.text)
+
+# 中文乱码时，手动指定编码
+response.encoding = "utf-8"
+
+# 如果返回的是 JSON 数据，直接用 .json() 转成字典/列表
+data = response.json()</pre>
+
+<h2 id="headers">二、请求头 headers（Token/Cookie/UA）</h2>
+<pre>import requests
+
+# F12 → Network → Headers 里复制，防止被识别为爬虫
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Accept": "application/json, text/plain, */*",
+    # 登录凭证二选一：
+    "Authorization": "Bearer 你的Token",   # 方式A：Bearer Token（推荐）
+    "Cookie": "session=xxx; token=yyy",     # 方式B：Cookie
+}
+
+# 需要登录的接口用 GET 或 POST
+response = requests.get(API_URL, headers=headers)
+response = requests.post(API_URL, headers=headers, json=PAYLOAD)
+
+# 返回不是 JSON 时（可能反爬或错误页），打印前 500 字定位问题
+if "application/json" not in response.headers.get("Content-Type", ""):
+    print(response.text[:500])</pre>
+
+<h2 id="bs4">三、BeautifulSoup 解析 HTML</h2>
+<pre>from bs4 import BeautifulSoup
+
+# html_doc 是网页源码（实际爬虫中来自 requests.get().text）
+soup = BeautifulSoup(html_doc, "lxml")   # lxml 解析器，速度快
+
+# find 找第一个；find_all 找全部
+title = soup.find("h1").text             # 找标题标签，.text 取文字
+all_p = soup.find_all("p")               # 返回所有 &lt;p&gt; 标签的列表</pre>
+
+<h2 id="extract">四、表格数据提取</h2>
+<pre>from bs4 import BeautifulSoup
+
+# HTML 表格结构：tr=行, th=表头, td=单元格
+# &lt;table&gt;
+#   &lt;tr&gt;&lt;th&gt;场景&lt;/th&gt;&lt;th&gt;FPS&lt;/th&gt;&lt;th&gt;温度&lt;/th&gt;&lt;/tr&gt;
+#   &lt;tr&gt;&lt;td&gt;娃娃机&lt;/td&gt;&lt;td&gt;60&lt;/td&gt;&lt;td&gt;65&lt;/td&gt;&lt;/tr&gt;
+#   ...
+soup = BeautifulSoup(html_doc, "lxml")
+rows = soup.find_all("tr")               # 所有行
+
+data = []
+for row in rows:
+    cells = row.find_all("td")           # 行的所有单元格
+    if cells:                            # 跳过表头那行（没有 td 只有 th）
+        scene = cells[0].text            # 第1列
+        fps   = cells[1].text            # 第2列
+        temp  = cells[2].text            # 第3列
+        data.append([scene, fps, temp])
+
+print(data)  # [['娃娃机','60','65'], ['形象投屏','45','72']]</pre>
+
+<h2 id="pandas">五、pandas 整理数据</h2>
+<pre>import pandas as pd
+
+# 二维列表 → DataFrame（带列名的表格）
+data = [["娃娃机", 60, 65], ["形象投屏", 45, 72]]
+df = pd.DataFrame(data, columns=["场景", "FPS", "温度"])
+
+print(df)          # 直接打印表格
+print(df.columns)  # 列名列表
+print(df.head())   # 前5行预览
+
+# 字典列表 → DataFrame（最常用，接口返回 JSON 就是这种）
+rows = [{"场景": "娃娃机", "FPS": 60}, {"场景": "投屏", "FPS": 45}]
+df = pd.DataFrame(rows)</pre>
+
+<h2 id="filter">六、pandas 筛选与统计</h2>
+<pre>import pandas as pd
+
+# 条件筛选：State==0（存活）的行
+alive_df = df[df["PlayerStateForSecond"] == 0]
+
+# 再筛选：存活时 FPS &lt; 55 的行
+low_fps = alive_df[alive_df["FPS"] &lt; 55]
+
+# 统计
+len(low_fps)               # 满足条件的行数
+df["GTemp"].median()       # 中位数
+df["GTemp"].mean()         # 平均值
+df["GTemp"].min()          # 最小值
+df["GTemp"].max()          # 最大值
+df["GTemp"].quantile(0.25) # 下四分位数（Q1）
+df["GTemp"].quantile(0.75) # 上四分位数（Q3）
+
+# 逐行遍历处理（适合需要判断每行内容的场景）
+for idx, row in alive_df.iterrows():
+    print(row["FPS"], row["FTime"])</pre>
+
+<h2 id="api">七、实战：API 接口爬取（PerfEye）</h2>
+<pre>import requests, json
+import pandas as pd
+
+# 第1步：请求接口
+headers = {"User-Agent": "Mozilla/5.0", "Authorization": "Bearer TOKEN"}
+response = requests.post(API_URL, headers=headers, json={"id": "..."})
+response.encoding = "utf-8"
+
+data = response.json()          # JSON → Python 字典
+print("顶层字段:", list(data.keys()))
+
+# 第2步：保存原始数据（便于排查）
+with open("raw.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+
+# 第3步：定位到真正的数据列表（常见结构：data.list / data.DataList / result 等）
+raw_list = data.get("data", {}).get("DataList", [])
+
+# 第4步：转 DataFrame 分析
+df = pd.DataFrame(raw_list)
+print(df.columns.tolist())</pre>
+
+<h2 id="clean">八、数据清洗与字段适配</h2>
+<pre>import ast
+import pandas as pd
+
+# 1. 字段名大小写不固定 → 自动匹配
+def find_column(candidates, df_cols):
+    for c in candidates:
+        matches = [col for col in df_cols if c.lower() == col.lower()]
+        if matches:
+            return matches[0]
+    return None
+
+fps_col = find_column(["FPS", "fps", "Fps"], df.columns)
+
+# 2. 字段可能是字符串列表 "[16,17,18]" → 安全转成真列表
+def to_list(value):
+    if isinstance(value, str):
+        try:
+            return ast.literal_eval(value)      # 安全解析 "[16,17,18]"
+        except Exception:
+            return [float(x) for x in value.strip("[]").split(",") if x.strip()]
+    if isinstance(value, list):
+        return value
+    return [float(value)]
+
+ftime_list = to_list(row["FTime"])
+high_frames = [t for t in ftime_list if t &gt; 18]   # 帧耗时 &gt; 18ms 的帧
+
+# 3. 排除异常值（如 GPU 温度里的 0°C）
+valid_temps = df[df["GTemp"] &gt; 0]["GTemp"]
+median = valid_temps.median()
+
+# 4. 缺字段用 .get 兜底，避免 KeyError
+val = node.get("total_time", 0)</pre>
+
+<h2 id="tips">九、常用技巧速查</h2>
+<table>
+<tr><th>场景</th><th>写法</th></tr>
+<tr><td>取接口数据</td><td><code>response.json()</code> 返回字典/列表</td></tr>
+<tr><td>指定编码防乱码</td><td><code>response.encoding = "utf-8"</code></td></tr>
+<tr><td>携带登录凭证</td><td>headers 里加 <code>Authorization</code> 或 <code>Cookie</code></td></tr>
+<tr><td>找第一个/全部标签</td><td><code>soup.find("tr")</code> / <code>soup.find_all("tr")</code></td></tr>
+<tr><td>取标签文字</td><td><code>tag.text</code></td></tr>
+<tr><td>二维列表建表</td><td><code>pd.DataFrame(list, columns=[...])</code></td></tr>
+<tr><td>字典列表建表</td><td><code>pd.DataFrame(rows)</code></td></tr>
+<tr><td>条件筛选行</td><td><code>df[df["列"] == 值]</code></td></tr>
+<tr><td>统计中位/均值/极值</td><td><code>.median() .mean() .min() .max()</code></td></tr>
+<tr><td>逐行处理</td><td><code>for idx, row in df.iterrows():</code></td></tr>
+<tr><td>安全转字符串列表</td><td><code>ast.literal_eval(...)</code></td></tr>
+<tr><td>自动定位数据列表</td><td>递归探测或尝试常见键 <code>data.list / DataList / result</code></td></tr>
+</table>
+
+</body></html>

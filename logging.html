@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>服务器日志分析与告警系统 · 讲解</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:900px;margin:0 auto;padding:25px;line-height:1.9;background:#fafafa;color:#24292e;font-size:17px;}
+h1{color:#cf222e;border-bottom:3px solid #cf222e;padding-bottom:12px;font-size:30px;}
+h2{color:#cf222e;margin-top:38px;border-left:5px solid #cf222e;padding-left:14px;font-size:22px;background:#fff;padding:10px 16px;border-radius:0 6px 6px 0;}
+h3{color:#0969da;margin-top:26px;font-size:19px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:13.5px;line-height:1.6;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+.toc{background:#fff;border:2px solid #cf222e;border-radius:10px;padding:20px;margin-bottom:25px;}
+.toc a{color:#cf222e;text-decoration:none;display:block;padding:4px 0;}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px;}
+th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;}
+th{background:#fdeaea;color:#cf222e;}
+code{background:#fdeaea;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:13px;color:#cf222e;}
+.note{background:#fff8e6;border-left:4px solid #f0b429;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+.ok{background:#f0f8f0;border-left:4px solid #1a7f37;padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;}
+@media(max-width:600px){body{padding:15px;}pre{font-size:12.5px;}}</style></head>
+<body>
+
+<h1>服务器日志分析与告警系统 · 逐步拆解</h1>
+
+<div class="toc">
+<h3>目录</h3>
+<a href="#what">一、这个程序是做什么的</a>
+<a href="#import">二、从模块开始（文件顶部）</a>
+<a href="#sample">三、示例日志常量 SAMPLE_LOG</a>
+<a href="#regex">四、正则表达式 LOG_PATTERN</a>
+<a href="#class">五、LogAnalyzer 类与 __init__</a>
+<a href="#load">六、load —— 读取并解析日志</a>
+<a href="#readlines">七、_read_lines —— 数据源</a>
+<a href="#analyze">八、analyze —— 生成报表</a>
+<a href="#alerts">九、_check_alerts —— 告警引擎</a>
+<a href="#main">十、main 与 if __name__</a>
+<a href="#flow">十一、完整数据流转</a>
+<a href="#design">十二、关键设计思想</a>
+<a href="#run">十三、运行效果预览</a>
+</div>
+
+<h2 id="what">一、这个程序是做什么的</h2>
+<p>一个<strong>自动化运维小工具</strong>：读取 Web 服务器（如 Nginx/Apache）的访问日志，自动算出关键指标，发现异常时发出告警。</p>
+<table>
+<tr><th>功能模块</th><th>具体作用</th></tr>
+<tr><td>日志解析</td><td>用正则从日志中提取 IP、时间、方法、URL、状态码、响应大小、响应时间</td></tr>
+<tr><td>基础统计</td><td>总/有效/无效请求数，平均响应时间、最大响应时间、平均响应大小</td></tr>
+<tr><td>状态码分析</td><td>统计 200、404、500 等状态码次数和占比</td></tr>
+<tr><td>Top N 排行</td><td>访问最频繁的 IP、请求最多的 URL（Top 3）</td></tr>
+<tr><td>智能告警</td><td>5xx 错误率过高？响应太慢？某 IP 恶意刷接口？</td></tr>
+<tr><td>报告输出</td><td>格式化成分清晰的中文文本报告</td></tr>
+</table>
+<p><strong>意义</strong>：生产日志每天几十万行，人工翻找不现实。它把“读日志→算指标→找异常→出报告”整条运维流程自动化，是常见的面试/练习编程题，也是实用的工具原型。</p>
+
+<h2 id="import">二、从模块开始（文件顶部）</h2>
+<pre>import re                       # 正则表达式引擎
+from collections import Counter # 自动计数器
+from pathlib import Path        # 现代化文件路径工具</pre>
+<ul>
+<li><code>re</code>：标准库自带。本程序用它 <code>re.compile(...)</code> 预编译正则，再用 <code>.match()</code> 逐行匹配。像一台“文字安检仪”。</li>
+<li><code>Counter</code>：自动计数的字典。给列表即可统计每个元素出现次数，<code>most_common(n)</code> 直接按次数降序取前 n 个，不需要手写循环计数。</li>
+<li><code>Path</code>：Python 3 推荐的路径模块。<code>Path(src)</code>、<code>p.is_file()</code>（是否存在）、<code>p.read_text(encoding='utf-8')</code>（读全部文本）。比老式 <code>open()</code> 简洁。老写法：<code>with open(...) as f: content = f.read()</code>。</li>
+</ul>
+
+<h2 id="sample">三、示例日志常量 SAMPLE_LOG</h2>
+<pre>SAMPLE_LOG = """\192.168.1.10 2026-07-23T10:05:32 "GET /api/users 200" 200 1524 45
+10.0.0.5 2026-07-23T10:05:33 "POST /api/login 200" 200 312 120
+...
+bad line that should be skipped
+172.16.0.88 2026-07-23T10:07:30 "GET /api/orders 502" 502 0 5000
+"""</pre>
+<ul>
+<li><code>"""..."""</code> 三引号可跨多行写字符串，不需每行加 <code>\n</code>。</li>
+<li>行尾 <code>\</code>：去掉字符串开头的第一个换行。没有它，首字符会是换行而非 <code>192...</code>。</li>
+<li>故意放一行 <code>bad line...</code>，用来演示“坏行跳过”的容错。</li>
+</ul>
+
+<h2 id="regex">四、正则表达式 LOG_PATTERN</h2>
+<div class="note">想系统学正则：推荐先背熟基础元字符，多用 regex101.com 实时测试。</div>
+<h3>1. 最常用的 6 个函数</h3>
+<table>
+<tr><th>函数</th><th>作用</th><th>返回值</th></tr>
+<tr><td>re.match(pattern, string)</td><td>从字符串开头匹配</td><td>Match 对象或 None</td></tr>
+<tr><td>re.search(pattern, string)</td><td>搜索第一个匹配</td><td>Match 对象或 None</td></tr>
+<tr><td>re.findall(pattern, string)</td><td>找到所有匹配</td><td>列表</td></tr>
+<tr><td>re.sub(pattern, repl, string)</td><td>用 repl 替换所有匹配</td><td>新字符串</td></tr>
+<tr><td>re.compile(pattern)</td><td>预编译重复使用</td><td>Pattern 对象</td></tr>
+</table>
+
+<h3>2. 基础元字符</h3>
+<pre>.   任意单个字符（除换行）    \d 数字       \D 非数字
+\w  单词字符（字母数字下划线）\W 非单词字符  \s 空白
+\S  非空白                   ^ 开头        $ 结尾
+*   0次或多次   + 1次或多次   ? 0次或1次    {n,m} n到m次
+[]  字符集（[^abc]表"非"）    | 或           () 分组
+.*  贪婪匹配                 .*? 非贪婪匹配</pre>
+<p>量词后加 <code>?</code> 变成非贪婪（<code>*?</code>、<code>+?</code>）：尽可能少匹配。</p>
+
+<h3>3. 命名分组 (?P&lt;名字&gt;...)</h3>
+<pre>pattern = r"(?P&lt;year&gt;\d{4})-(?P&lt;month&gt;\d{2})-(?P&lt;day&gt;\d{2})"
+m = re.search(pattern, "2026-08-06")
+print(m.group("year"))    # 2026
+print(m.groupdict())      # {'year':'2026','month':'08','day':'06'} ← 本程序精髓</pre>
+<p><code>groupdict()</code> 直接把匹配结果转成字典，方便后续处理。</p>
+
+<h3>4. 拆解本程序的 LOG_PATTERN</h3>
+<pre>LOG_PATTERN = re.compile(
+    r'(?P&lt;ip&gt;\S+) (?P&lt;ts&gt;\S+) '
+    r'"(?P&lt;method&gt;\S+) (?P&lt;url&gt;\S+) (?P&lt;inner_status&gt;\d+)" '
+    r'(?P&lt;status&gt;\d+) (?P&lt;size&gt;\d+) (?P&lt;duration&gt;\d+)'
+)</pre>
+<p>对应示例日志：</p>
+<pre>192.168.1.10 2026-07-23T10:05:32 "GET /api/users 200" 200 1524 45</pre>
+<table>
+<tr><th>正则片段</th><th>含义</th><th>匹配结果</th></tr>
+<tr><td>(?P&lt;ip&gt;\S+)</td><td>命名分组 ip，非空白字符</td><td>192.168.1.10</td></tr>
+<tr><td>(?P&lt;ts&gt;\S+)</td><td>命名分组 ts（时间戳）</td><td>2026-07-23T10:05:32</td></tr>
+<tr><td>" 字面量双引号</td><td>匹配双引号</td><td>"</td></tr>
+<tr><td>(?P&lt;method&gt;\S+)</td><td>命名分组 method</td><td>GET</td></tr>
+<tr><td>(?P&lt;url&gt;\S+)</td><td>命名分组 url</td><td>/api/users</td></tr>
+<tr><td>(?P&lt;inner_status&gt;\d+)</td><td>命名分组 inner_status</td><td>200</td></tr>
+<tr><td>(?P&lt;status&gt;\d+)</td><td>命名分组 status</td><td>200</td></tr>
+<tr><td>(?P&lt;size&gt;\d+)</td><td>命名分组 size</td><td>1524</td></tr>
+<tr><td>(?P&lt;duration&gt;\d+)</td><td>命名分组 duration</td><td>45</td></tr>
+</table>
+<ul>
+<li><code>\S</code> 匹配非空白字符，IP/时间戳/URL 均无空格，用 <code>\S+</code> 最合适。</li>
+<li><code>r'...'</code> 原始字符串，确保 <code>\S</code>、<code>\d</code> 不被 Python 先转义（否则要写成 <code>\\S</code>）。</li>
+<li>分多行 <code>r'...'</code> 字符串会自动拼接，仅为换行美观。</li>
+</ul>
+
+<h2 id="class">五、LogAnalyzer 类与 __init__</h2>
+<div class="ok">为什么要用类：日志分析器有状态（记录解析结果）有行为（加载、分析、告警），用类把数据和操作打包，复用方便。</div>
+<pre>class LogAnalyzer:
+    def __init__(self, source=None):
+        self.source = source        # 日志来源（文件路径或 None）
+        self.records = []           # 解析出的有效记录（字典列表）
+        self.skip_count = 0         # 跳过的错误行数
+        self.total_lines = 0        # 文件总行数</pre>
+<p><code>self</code> 代表当前实例。类像模具，<code>self</code> 是用模具造出的具体实例。此时 <code>records</code> 还是空盒子。</p>
+
+<h2 id="load">六、load —— 读取并解析日志</h2>
+<pre>def load(self):
+    lines = self._read_lines()     # 1. 拿到所有行
+    self.total_lines = len(lines)  # 2. 总行数
+    for line in lines:
+        line = line.strip()            # 去首尾空白
+        if not line: continue          # 跳过空行
+        m = LOG_PATTERN.match(line)    # 4. 正则匹配
+        if not m:                      # 格式错误
+            self.skip_count += 1
+            continue
+        d = m.groupdict()              # 5. 提取命名分组
+        try:
+            rec = {
+                'ip': d['ip'],
+                'timestamp': d['ts'],
+                'method': d['method'],
+                'url': d['url'],
+                'status': int(d['status']),
+                'size': int(d['size']),
+                'duration_ms': int(d['duration']),
+            }
+            self.records.append(rec)   # 6. 存入 records
+        except (ValueError, KeyError):
+            self.skip_count += 1       # 转换失败也跳过
+            continue</pre>
+<p>数据流转：原始日志行 → 正则匹配 <code>LOG_PATTERN.match</code> → <code>groupdict()</code> 字典 → 数字字段 <code>int()</code> → <code>append</code> 进 <code>records</code>。</p>
+<div class="note">注意 groupdict() 取出的值都是<strong>字符串</strong>，所以 status/size/duration 要 <code>int()</code> 转类型。try/except 保证某行转整数失败或缺键时优雅跳过，不崩溃。</div>
+
+<h2 id="readlines">七、_read_lines —— 数据源</h2>
+<pre>def _read_lines(self):
+    if self.source is None:              # 情况A：未传路径
+        return SAMPLE_LOG.splitlines()   # 用内置示例
+    p = Path(self.source)
+    if p.is_file():                      # 情况B：文件存在
+        return p.read_text(encoding='utf-8').splitlines()
+    return SAMPLE_LOG.splitlines()       # 情况C：文件不存在 → 回退示例</pre>
+<table>
+<tr><th>场景</th><th>结果</th></tr>
+<tr><td>LogAnalyzer() 不传参</td><td>用内置 SAMPLE_LOG</td></tr>
+<tr><td>LogAnalyzer("access.log") 文件存在</td><td>读取真实文件</td></tr>
+<tr><td>LogAnalyzer("不存在") </td><td>回退到内置示例</td></tr>
+</table>
+<p>前导下划线 <code>_read_lines</code>：Python 约定表示“私有方法”，类内部用，外部别直接调。<code>splitlines()</code> 按换行切成列表，如 <code>"a\nb".splitlines()</code> → <code>['a','b']</code>。</p>
+
+<h2 id="analyze">八、analyze —— 生成报表</h2>
+<pre>def analyze(self, alert_rules=None, top_n=3):
+    recs = self.records
+    valid = len(recs)          # 有效记录数
+    lines = []</pre>
+<p>四件事依次拼接。<code>alert_rules or {}</code>：未传规则时用空字典，避免 <code>.get()</code> 报错。</p>
+<h3>8.1 基础统计</h3>
+<pre>lines.append("===== 服务器日志分析报告 =====")
+lines.append("")
+lines.append("[基础统计]")
+lines.append(f"总行数: {self.total_lines} | 有效请求: {valid} | 跳过行数: {self.skip_count}")
+if valid:
+    avg_dur = sum(r['duration_ms'] for r in recs) / valid
+    max_dur  = max(r['duration_ms'] for r in recs)
+    avg_size = sum(r['size'] for r in recs) / valid
+    lines.append(f"平均响应时间: {avg_dur:.2f} ms | 最大响应时间: {max_dur} ms")
+    lines.append(f"平均响应大小: {avg_size:.2f} bytes")
+else:
+    lines.append("平均响应时间: 0.00 ms | 最大响应时间: 0 ms")
+    lines.append("平均响应大小: 0.00 bytes")</pre>
+<ul>
+<li><code>sum(r['duration_ms'] for r in recs)</code> 生成器表达式：遍历求和。</li>
+<li><code>if valid:</code> 判空避免除以 0（<code>ZeroDivisionError</code>）。</li>
+<li><code>f"{x:.2f}"</code> 保留两位小数。</li>
+</ul>
+<h3>8.2 状态码分布</h3>
+<pre>status_cnt = Counter(r['status'] for r in recs)
+lines.append("[状态码分布]")
+if valid:
+    for code, cnt in sorted(status_cnt.items()):
+        pct = cnt / valid * 100
+        lines.append(f"  {code}: {cnt} 次 ({pct:.2f}%)")
+else:
+    lines.append("  (无)")</pre>
+<p><code>Counter</code> 自动统计出现次数，<code>sorted()</code> 按状态码升序。</p>
+<h3>8.3 Top N IP 与 URL</h3>
+<pre>ip_cnt  = Counter(r['ip'] for r in recs)
+url_cnt = Counter(r['url'] for r in recs)
+
+lines.append(f"[Top {top_n} IP 地址]")
+for ip, cnt in ip_cnt.most_common(top_n):
+    lines.append(f"  {ip}: {cnt} 次")
+
+lines.append(f"[Top {top_n} URL]")
+for url, cnt in url_cnt.most_common(top_n):
+    lines.append(f"  {url}: {cnt} 次")</pre>
+<p><code>most_common(top_n)</code> 自动按次数降序取前 N 个，不用自己排序。</p>
+<h3>8.4 告警 + 拼接返回</h3>
+<pre>lines.append("[告警信息]")
+if not alerts:
+    lines.append("  (无触发告警)")
+else:
+    for a in alerts:
+        lines.append(f"⚠️  {a}")
+
+return "\n".join(lines)</pre>
+<p><code>"\n".join(lines)</code> 把列表拼成完整多行字符串，比 <code>+=</code> 高效。</p>
+
+<h2 id="alerts">九、_check_alerts —— 告警引擎</h2>
+<pre>def _check_alerts(self, rules, top_n):
+    if not recs:
+        return []
+    alerts = []
+    total = len(recs)
+
+    # 规则1：5xx 错误率
+    err_rate = rules.get('error_rate_threshold')
+    if err_rate is not None:
+        err5 = sum(1 for r in recs if 500 &lt;= r['status'] &lt; 600)
+        rate = err5 / total * 100
+        if rate > err_rate:
+            alerts.append(f"5xx 错误率 {rate:.2f}% 超过阈值 {err_rate}%")
+
+    # 规则2：平均响应时间
+    slow = rules.get('slow_request_threshold_ms')
+    if slow is not None:
+        avg = sum(r['duration_ms'] for r in recs) / total
+        if avg > slow:
+            alerts.append(f"平均响应时间 {avg:.2f}ms 超过阈值 {slow}ms")
+
+    # 规则3：单 IP 请求上限
+    ip_max = rules.get('single_ip_max_requests')
+    if ip_max is not None:
+        ip_cnt = Counter(r['ip'] for r in recs)
+        for ip, cnt in ip_cnt.most_common(top_n):
+            if cnt >= ip_max:
+                alerts.append(f"IP {ip} 请求 {cnt} 次，达到上限 {ip_max}")
+    return alerts</pre>
+<ul>
+<li><code>rules.get(...)</code> 取阈值，<code>is not None</code> 防止未配置时误触。</li>
+<li><code>sum(1 for ... if 500&lt;=status&lt;600)</code> 满足条件记 1，最后求和即 5xx 数量（条件计数技巧）。</li>
+<li><strong>注意区别</strong>：错误率用 <code>&gt;</code>（超过才告警），单 IP 用 <code>&gt;=</code>（达到上限即告警）。</li>
+</ul>
+
+<h2 id="main">十、main 与 if __name__</h2>
+<pre>def main():
+    import sys
+    src = sys.argv[1] if len(sys.argv) &gt; 1 else None
+    rules = {
+        "error_rate_threshold": 20.0,
+        "slow_request_threshold_ms": 1000,
+        "single_ip_max_requests": 3,
+    }
+    analyzer = LogAnalyzer(src)
+    analyzer.load()
+    print(analyzer.analyze(alert_rules=rules, top_n=3))
+
+if __name__ == "__main__":
+    main()</pre>
+<ul>
+<li><code>sys.argv[0]</code> 是脚本名，<code>sys.argv[1]</code> 是第一个命令行参数（日志路径），没有则 <code>src=None</code>。</li>
+<li>三步走：创建对象 → <code>load()</code> 解析 → <code>analyze()</code> 生成并打印。</li>
+<li><code>if __name__ == "__main__":</code>：直接运行该文件时 <code>__name__=='__main__'</code> 才执行 main；被 import 时不会。方便复用 <code>LogAnalyzer</code>，公共逻辑不自动触发。</li>
+<li>运行方式：<pre>python 服务器日志分析与告警系统.py               # 用内置示例
+python 服务器日志分析与告警系统.py access.log  # 用真实文件</pre></li>
+</ul>
+
+<h2 id="flow">十一、完整数据流转</h2>
+<pre>access.log / SAMPLE_LOG
+      │
+      ▼
+  _read_lines()  按行读取，返回列表
+      │
+      ▼
+     load()      逐行正则解析 LOG_PATTERN.match
+      │          成功 → 字典 → records[]
+      │          失败 → skip_count++
+      ▼
+   analyze()     基于 records 统计：基础统计 / 状态码 / TopN
+      │
+      ▼
+ _check_alerts() 按规则检测异常
+      │
+      ▼
+   文本报告字符串 → return / print</pre>
+
+<h2 id="design">十二、关键设计思想</h2>
+<table>
+<tr><th>设计</th><th>原因</th></tr>
+<tr><td>类封装</td><td>把“读-解析-分析-输出”封装在一起，复用方便</td></tr>
+<tr><td>load 与分析分离</td><td>解析只做一次，分析可多次（换规则、换 top_n）</td></tr>
+<tr><td>正则命名分组</td><td>groupdict() 直接变字典，代码简洁</td></tr>
+<tr><td>Counter 统计</td><td>不手写循环计数，代码短且高效</td></tr>
+<tr><td>列表拼接报告</td><td>比字符串 += 高效，逻辑清晰</td></tr>
+<tr><td>边界处理</td><td>空文件、全错、无告警都有兜底，不崩</td></tr>
+</table>
+
+<h2 id="run">十三、运行效果预览</h2>
+<pre>===== 服务器日志分析报告 =====
+
+[基础统计]
+总行数: 9 | 有效请求: 8 | 跳过行数: 1
+平均响应时间: 1129.50 ms | 最大响应时间: 5000 ms
+平均响应大小: 25813.12 bytes
+
+[状态码分布]
+  200: 4 次 (50.00%)
+  403: 1 次 (12.50%)
+  500: 1 次 (12.50%)
+  502: 1 次 (12.50%)
+
+[Top 3 IP 地址]
+  192.168.1.10: 3 次
+  172.16.0.88: 3 次
+  10.0.0.5: 2 次
+
+[Top 3 URL]
+  /api/users: 2 次
+  /api/login: 1 次
+  /static/logo.png: 1 次
+
+[告警信息]
+⚠️  IP 192.168.1.10 请求 3 次，达到上限 3
+⚠️  IP 172.16.0.88 请求 3 次，达到上限 3
+⚠️  平均响应时间 1129.50ms 超过阈值 1000ms</pre>
+
+</body>
+</html>

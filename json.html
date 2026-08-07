@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Python JSON 数据处理大全</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;max-width:900px;margin:0 auto;padding:25px;line-height:1.9;background:#fafafa;color:#24292e;font-size:17px;}
+h1{color:#1a7f37;border-bottom:3px solid #1a7f37;padding-bottom:12px;font-size:30px;}
+h2{color:#1a7f37;margin-top:35px;border-left:5px solid #1a7f37;padding-left:14px;font-size:22px;background:#fff;padding:10px 16px;border-radius:0 6px 6px 0;}
+h3{color:#0969da;margin-top:25px;font-size:19px;}
+pre{background:#fff;color:#333;padding:10px 14px;overflow-x:auto;font-size:15px;line-height:1.6;margin:8px 0;font-family:Consolas,"Menlo","Monaco",monospace;border-radius:4px;border:1px solid #ddd;}
+.toc{background:#fff;border:2px solid #1a7f37;border-radius:10px;padding:20px;margin-bottom:25px;}
+.toc a{color:#1a7f37;text-decoration:none;display:block;padding:5px 0;}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:15px;}
+th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;}
+th{background:#edf4ed;color:#1a7f37;}
+code{background:#edf4ed;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:14px;color:#1a7f37;}
+@media(max-width:600px){body{padding:15px;}pre{font-size:14px;}}</style></head>
+<body>
+
+<h1>Python JSON 数据处理大全</h1>
+
+<div class="toc">
+<h3>目录</h3>
+<a href="#basic">一、基础读写</a>
+<a href="#fmt">二、中文与格式化</a>
+<a href="#pair">三、load/loads 与 dump/dumps 配对</a>
+<a href="#syntax">四、JSON 语法要点</a>
+<a href="#pathlib">五、pathlib.Path 稳健读写</a>
+<a href="#csv2json">六、CSV 转 JSON</a>
+<a href="#json2csv">七、JSON 转 CSV</a>
+<a href="#flatten">八、嵌套 JSON 递归展平</a>
+</div>
+
+<h2 id="basic">一、基础</h2>
+<pre>import json
+
+# 序列化（对象 -> JSON字符串）
+data = {'name': '小周', 'age': 25}
+json_str = json.dumps(data)               # 对象 -> 字符串
+json.dump(data, open('data.json','w'))    # 对象 -> 文件
+
+# 反序列化（JSON -> 对象）
+data = json.loads(json_str)               # 字符串 -> 对象
+data = json.load(open('data.json','r'))   # 文件 -> 对象</pre>
+
+<h2 id="fmt">二、中文与格式化</h2>
+<pre>data = {'name': '小周', 'score': 88}
+
+# ensure_ascii=False：中文不转义，直接显示中文
+print(json.dumps(data, ensure_ascii=False))
+# {"name": "小周", "score": 88}
+
+# indent=2：用 2 空格缩进，便于阅读
+print(json.dumps(data, ensure_ascii=False, indent=2))
+# {
+#   "name": "小周",
+#   "score": 88
+# }</pre>
+
+<h2 id="pair2">三、load/loads 与 dump/dumps 配对记忆</h2>
+<pre># 带 s 的 对 字符串(String)；不带 s 的 对 文件(File)
+# load/loads = 读（JSON -> 对象），dump/dumps = 写（对象 -> JSON）
+
+json.loads('{"a": 1}')      # 字符串 -> 对象
+json.load(f)                # 文件对象 -> 对象
+json.dumps({'a': 1})        # 对象 -> 字符串
+json.dump({'a': 1}, f)      # 对象 -> 文件对象</pre>
+
+<h2 id="syntax">四、JSON 语法要点</h2>
+<pre># 键和字符串值必须用双引号 "（Python 单引号也行，JSON 不行）
+# 布尔值小写：true/false  对应  Python 的 True/False
+# 空值：null  对应  Python 的 None
+
+# 合法 JSON：
+'{"name": "小周", "score": 90}'
+
+# 不合法 JSON：
+"{'name': '小周'}"     # 键用了单引号
+'{name: "小周"}'       # 键没有引号</pre>
+
+<h2 id="path">五、pathlib.Path 稳健读写（高频考点）</h2>
+<pre>from pathlib import Path
+import json
+
+path = Path('data.json')
+
+# 保存：json.dumps(对象) -> write_text；中文不转义 + 2空格缩进
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+
+# 读取：read_text -> json.loads
+loaded = json.loads(path.read_text(encoding='utf-8'))
+
+# 稳健处理：文件不存在、内容为空或 JSON 损坏都从空字典开始
+try:
+    data = json.loads(path.read_text(encoding='utf-8'))
+except (FileNotFoundError, json.JSONDecodeError):
+    data = {}</pre>
+
+<h2 id="csv2json">六、CSV 转 JSON</h2>
+<pre>import csv, json
+from pathlib import Path
+
+# CSV 文件示例（含表头）：
+#    name,score,city
+#    小陈,90,太原
+#    小李,88,北京
+
+src = Path('scores.csv')
+rows = []
+with src.open('r', encoding='utf-8-sig') as f:
+    # DictReader 把第一行当表头，每行读成字典 {表头: 值}
+    reader = csv.DictReader(f)
+    for row in reader:
+        rows.append(row)          # [{'name': '小陈', ...}, ...]
+
+# 转成 JSON 列表并保存；ensure_ascii=False 保留中文
+Path('scores.json').write_text(
+    json.dumps(rows, ensure_ascii=False, indent=2), encoding='utf-8')</pre>
+
+<h2 id="json2csv">七、JSON 转 CSV</h2>
+<pre>import csv, json
+from pathlib import Path
+
+data = json.loads(Path('data.json').read_text(encoding='utf-8'))
+# data 例如：[{'name': '小陈', 'score': 90}, {'name': '小周', 'score': 88}]
+
+with Path('output.csv').open('w', newline='', encoding='utf-8-sig') as f:
+    # fieldnames 指定表头顺序（用第一行的键）
+    writer = csv.DictWriter(f, fieldnames=data[0].keys())
+    writer.writeheader()     # 写表头
+    writer.writerows(data)   # 写所有数据
+
+# 注意：
+#   newline=''              避免写入多余的空行
+#   encoding='utf-8-sig'    加 BOM，Excel 打开中文不乱码</pre>
+
+<h2 id="flatten">八、嵌套 JSON 递归展平（进阶）</h2>
+<pre>import json
+from pathlib import Path
+
+# 场景：JSON 是树形嵌套结构（父节点下有 children 列表），
+#       要变成一张张表格的行 -> 用"父子路径"记录层级。
+
+def flatten(nodes, parent_path="", result=None):
+    """把嵌套的 JSON 树拍平成一行一行的记录。"""
+    if result is None:
+        result = []
+    for node in nodes:
+        # 拼接完整路径："父\子"，顶层没有父就是节点名
+        current_path = f"{parent_path}\\{node['name']}" if parent_path else node['name']
+        # 提取本行数据，用 .get 兜底，避免某些字段缺失报 KeyError
+        row = {
+            'path': current_path,               # 完整调用链
+            'name': node['name'],               # 当前节点名
+            'parent': parent_path,              # 父路径
+            'total_time_ms': node.get('total_time', 0),
+            'depth': current_path.count('\\'),  # 嵌套深度
+        }
+        result.append(row)
+        # 递归处理子节点
+        if 'children' in node and node['children']:
+            flatten(node['children'], current_path, result)
+    return result
+
+data = json.loads(Path('func_data_summary.json').read_text(encoding='utf-8'))
+rows = flatten(data)      # 树  ->  平铺的行列表
+
+# 再配合第七节的 csv.DictWriter 即可导出 CSV。
+# 记忆点：
+#   .get(key, 默认值)  缺字段安全取值
+#   递归：子树继续调用自身，用 parent_path 往下传递层级信息</pre>
+
+</body></html>
